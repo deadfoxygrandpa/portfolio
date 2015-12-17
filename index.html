@@ -11504,6 +11504,11 @@ Elm.Main.make = function (_elm) {
       return $Basics.not(model);
    });
    var model = false;
+   var title = Elm.Native.Port.make(_elm).outbound("title",
+   function (v) {
+      return v;
+   },
+   "Gigi\'s Portfolio?");
    var main = $StartApp$Simple.start({model: model
                                      ,view: view
                                      ,update: update});
