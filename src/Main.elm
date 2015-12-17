@@ -16,6 +16,12 @@ main =
   StartApp.start { model = model, view = view, update = update }
 
 
+
+port title : String
+port title =
+  "Gigi's Portfolio?"
+
+
 model = 
   False
 
