@@ -75,7 +75,10 @@ view address model =
         , title'
         , selectors address model
         , project "JBL CONNECT" "APP" "JULY,2015" UX 541.4 412 model
-        , project "GIGI" "WEBSITE" "DEC,2015" Graphic 776 412 model
+        , project "GIGI" "WEBSITE" "DEC,2015" Interface 776 412 model
+        , project "BREATH" "POSTER" "DEC,2011" Graphic 310 412 model
+        , project "FUTURE" "POSTER" "DEC,2013" Graphic 310 412 model
+        , project "HORIZON" "UX" "JULY,2014" Photograph 670 130 model
         ]
 
 
@@ -193,9 +196,9 @@ project title subtitle date category w h model =
                     , "color" => "#333333"
                     , "fontFamily" => "monospace"
                     , "position" => "relative"
-                    , "left" => "30px"
+                    , "left" => "40px"
                     , "display" => "inline-block"
-                    , "margin" => "21px"
+                    , "margin" => "11px"
                     ]
                 ]
                 [ div
