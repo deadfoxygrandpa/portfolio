@@ -41,23 +41,32 @@ type Category
 
 
 type alias Model =
-    Category
+    { current : Category
+    , hovered : Maybe Category
+    }
 
 
 model : Model
 model =
-    All
+    Model All Nothing
 
 
 type Action
-    = Click Model
+    = Click Category
+    | Hover (Maybe Category)
 
 
-update : Action -> a -> ( Model, Effects Action )
+
+--update : Action -> a -> ( Model, Effects Action )
+
+
 update action model =
     case action of
-        Click model' ->
-            ( model', none )
+        Click category ->
+            ( Model category Nothing, none )
+
+        Hover category ->
+            ( { model | hovered = category }, none )
 
 
 view : Signal.Address Action -> Model -> Html
@@ -148,14 +157,16 @@ hamburger =
 selectors : Signal.Address Action -> Model -> Html
 selectors address model =
     let
-        styler : Model -> List Html.Attribute
-        styler model' =
-            [ classList [ "selected" => (model' == model) ]
+        styler : Category -> List Html.Attribute
+        styler category =
+            [ classList [ "selected" => (category == model.current) ]
             , style
                 [ "display" => "inherit"
                 , "padding" => "15px"
                 ]
-            , onClick address (Click model')
+            , onClick address (Click category)
+            , onMouseOver address (Hover (Just category))
+            , onMouseLeave address (Hover Nothing)
             ]
     in
         div
@@ -192,7 +203,13 @@ project title subtitle date category w h model =
                 [ style
                     [ "width" => (toString w ++ "px")
                     , "height" => (toString h ++ "px")
-                    , "backgroundColor" => "#ffffff"
+                    , "backgroundColor"
+                        => if model.hovered == (Just category) || model.hovered == (Just All) then
+                            "#ffffff"
+                           else if model.hovered == Nothing then
+                            "#ffffff"
+                           else
+                            "#eeeeee"
                     , "color" => "#333333"
                     , "fontFamily" => "monospace"
                     , "position" => "relative"
@@ -213,12 +230,12 @@ project title subtitle date category w h model =
                     ]
                 ]
     in
-        case model of
+        case model.current of
             All ->
                 rendered
 
             _ ->
-                if category == model then
+                if category == model.current then
                     rendered
                 else
                     div [] []
