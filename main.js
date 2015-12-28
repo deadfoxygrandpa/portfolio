@@ -12817,6 +12817,61 @@ Elm.Main.make = function (_elm) {
    _U.list([A2($Material$Icons$Navigation.menu,
    A3($Color.rgb,74,74,74),
    50)]))]));
+   var Hover = function (a) {    return {ctor: "Hover",_0: a};};
+   var Click = function (a) {    return {ctor: "Click",_0: a};};
+   var Model = F2(function (a,b) {
+      return {current: a,hovered: b};
+   });
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      if (_p0.ctor === "Click") {
+            return {ctor: "_Tuple2"
+                   ,_0: A2(Model,_p0._0,$Maybe.Nothing)
+                   ,_1: $Effects.none};
+         } else {
+            return {ctor: "_Tuple2"
+                   ,_0: _U.update(model,{hovered: _p0._0})
+                   ,_1: $Effects.none};
+         }
+   });
+   var Photograph = {ctor: "Photograph"};
+   var Graphic = {ctor: "Graphic"};
+   var UX = {ctor: "UX"};
+   var Interface = {ctor: "Interface"};
+   var All = {ctor: "All"};
+   var model = A2(Model,All,$Maybe.Nothing);
+   var selectors = F2(function (address,model) {
+      var styler = function (category) {
+         return _U.list([$Html$Attributes.classList(_U.list([A2(_op["=>"],
+                        "selected",
+                        _U.eq(category,model.current))]))
+                        ,$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                                        "display",
+                                                        "inherit")
+                                                        ,A2(_op["=>"],"padding","15px")]))
+                        ,A2($Html$Events.onClick,address,Click(category))
+                        ,A2($Html$Events.onMouseOver,
+                        address,
+                        Hover($Maybe.Just(category)))
+                        ,A2($Html$Events.onMouseLeave,address,Hover($Maybe.Nothing))]);
+      };
+      return A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "textAlign",
+                                              "center")
+                                              ,A2(_op["=>"],"display","inline-block")
+                                              ,A2(_op["=>"],"width","100%")
+                                              ,A2(_op["=>"],"cursor","pointer")]))]),
+      _U.list([A2($Html.h2,styler(All),_U.list([$Html.text("ALL")]))
+              ,A2($Html.h2,
+              styler(Interface),
+              _U.list([$Html.text("INTERFACE")]))
+              ,A2($Html.h2,styler(UX),_U.list([$Html.text("UX")]))
+              ,A2($Html.h2,styler(Graphic),_U.list([$Html.text("GRAPHIC")]))
+              ,A2($Html.h2,
+              styler(Photograph),
+              _U.list([$Html.text("PHOTOGRAPH")]))]));
+   });
    var project = F7(function (title,
    subtitle,
    date,
@@ -12831,7 +12886,12 @@ Elm.Main.make = function (_elm) {
                                               ,A2(_op["=>"],
                                               "height",
                                               A2($Basics._op["++"],$Basics.toString(h),"px"))
-                                              ,A2(_op["=>"],"backgroundColor","#ffffff")
+                                              ,A2(_op["=>"],
+                                              "backgroundColor",
+                                              _U.eq(model.hovered,
+                                              $Maybe.Just(category)) || _U.eq(model.hovered,
+                                              $Maybe.Just(All)) ? "#ffffff" : _U.eq(model.hovered,
+                                              $Maybe.Nothing) ? "#ffffff" : "#eeeeee")
                                               ,A2(_op["=>"],"color","#333333")
                                               ,A2(_op["=>"],"fontFamily","monospace")
                                               ,A2(_op["=>"],"position","relative")
@@ -12854,53 +12914,15 @@ Elm.Main.make = function (_elm) {
               _U.list([$Html.text(A2($Basics._op["++"],
               subtitle,
               A2($Basics._op["++"]," - ",date)))]))]))]));
-      var _p0 = model;
-      if (_p0.ctor === "All") {
+      var _p1 = model.current;
+      if (_p1.ctor === "All") {
             return rendered;
          } else {
-            return _U.eq(category,model) ? rendered : A2($Html.div,
+            return _U.eq(category,
+            model.current) ? rendered : A2($Html.div,
             _U.list([]),
             _U.list([]));
          }
-   });
-   var update = F2(function (action,model) {
-      var _p1 = action;
-      return {ctor: "_Tuple2",_0: _p1._0,_1: $Effects.none};
-   });
-   var Click = function (a) {    return {ctor: "Click",_0: a};};
-   var Photograph = {ctor: "Photograph"};
-   var Graphic = {ctor: "Graphic"};
-   var UX = {ctor: "UX"};
-   var Interface = {ctor: "Interface"};
-   var All = {ctor: "All"};
-   var model = All;
-   var selectors = F2(function (address,model) {
-      var styler = function (model$) {
-         return _U.list([$Html$Attributes.classList(_U.list([A2(_op["=>"],
-                        "selected",
-                        _U.eq(model$,model))]))
-                        ,$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                                        "display",
-                                                        "inherit")
-                                                        ,A2(_op["=>"],"padding","15px")]))
-                        ,A2($Html$Events.onClick,address,Click(model$))]);
-      };
-      return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                              "textAlign",
-                                              "center")
-                                              ,A2(_op["=>"],"display","inline-block")
-                                              ,A2(_op["=>"],"width","100%")
-                                              ,A2(_op["=>"],"cursor","pointer")]))]),
-      _U.list([A2($Html.h2,styler(All),_U.list([$Html.text("ALL")]))
-              ,A2($Html.h2,
-              styler(Interface),
-              _U.list([$Html.text("INTERFACE")]))
-              ,A2($Html.h2,styler(UX),_U.list([$Html.text("UX")]))
-              ,A2($Html.h2,styler(Graphic),_U.list([$Html.text("GRAPHIC")]))
-              ,A2($Html.h2,
-              styler(Photograph),
-              _U.list([$Html.text("PHOTOGRAPH")]))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -12949,8 +12971,10 @@ Elm.Main.make = function (_elm) {
                              ,UX: UX
                              ,Graphic: Graphic
                              ,Photograph: Photograph
+                             ,Model: Model
                              ,model: model
                              ,Click: Click
+                             ,Hover: Hover
                              ,update: update
                              ,view: view
                              ,logo: logo
