@@ -1,9 +1,9 @@
 body {
-  background-color: #f2f9fa;
+  background-color: #ffffff;
 }
 
 h1 {
-	font-size: 49.2px;
+  font-size: 49.2px;
 }
 
 h2 {
@@ -12,7 +12,21 @@ h2 {
   font-weight: normal;
 }
 
-h2.selected {
-  color: #50e3c2;
+h3 {
+  font-size: 22px;
+  letter-spacing: 5px;
   font-weight: bold;
+  line-height: 15px;
+}
+
+h4 {
+  font-size: 15px;
+  letter-spacing: 5px;
+  font-weight: bold;
+  line-height: 15px;
+}
+
+.selected {
+  color: #50e3c2;
+  font-weight: bolder;
 }
