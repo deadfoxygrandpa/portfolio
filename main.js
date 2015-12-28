@@ -12767,6 +12767,7 @@ Elm.Main.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
+   $String = Elm.String.make(_elm),
    $Svg = Elm.Svg.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
@@ -12774,7 +12775,9 @@ Elm.Main.make = function (_elm) {
       return {ctor: "_Tuple2",_0: a,_1: b};
    });
    var logo = A2($Html.div,
-   _U.list([]),
+   _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+   "position",
+   "absolute")]))]),
    _U.list([A2($Html.div,
            _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                                    "position",
@@ -12799,8 +12802,9 @@ Elm.Main.make = function (_elm) {
            50)]))]))]));
    var title$ = A2($Html.h1,
    _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                           "top",
-                                           "41px")
+                                           "position",
+                                           "relative")
+                                           ,A2(_op["=>"],"top","41px")
                                            ,A2(_op["=>"],"textAlign","center")]))]),
    _U.list([$Html.text("PROJECTS")]));
    var hamburger = A2($Html.div,
@@ -12842,18 +12846,22 @@ Elm.Main.make = function (_elm) {
    var model = A2(Model,All,$Maybe.Nothing);
    var selectors = F2(function (address,model) {
       var styler = function (category) {
-         return _U.list([$Html$Attributes.classList(_U.list([A2(_op["=>"],
-                        "selected",
-                        _U.eq(category,model.current))]))
-                        ,$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                                        "display",
-                                                        "inherit")
-                                                        ,A2(_op["=>"],"padding","15px")]))
-                        ,A2($Html$Events.onClick,address,Click(category))
-                        ,A2($Html$Events.onMouseOver,
-                        address,
-                        Hover($Maybe.Just(category)))
-                        ,A2($Html$Events.onMouseLeave,address,Hover($Maybe.Nothing))]);
+         return A2($Html.h2,
+         _U.list([$Html$Attributes.classList(_U.list([A2(_op["=>"],
+                 "selected",
+                 _U.eq(category,model.current))]))
+                 ,$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                                 "display",
+                                                 "inherit")
+                                                 ,A2(_op["=>"],"padding","15px")]))
+                 ,A2($Html$Events.onClick,address,Click(category))
+                 ,A2($Html$Events.onMouseOver,
+                 address,
+                 Hover($Maybe.Just(category)))
+                 ,A2($Html$Events.onMouseLeave,address,Hover($Maybe.Nothing))]),
+         _U.list([$Html.text(function (_p1) {
+            return $String.toUpper($Basics.toString(_p1));
+         }(category))]));
       };
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
@@ -12862,15 +12870,11 @@ Elm.Main.make = function (_elm) {
                                               ,A2(_op["=>"],"display","inline-block")
                                               ,A2(_op["=>"],"width","100%")
                                               ,A2(_op["=>"],"cursor","pointer")]))]),
-      _U.list([A2($Html.h2,styler(All),_U.list([$Html.text("ALL")]))
-              ,A2($Html.h2,
-              styler(Interface),
-              _U.list([$Html.text("INTERFACE")]))
-              ,A2($Html.h2,styler(UX),_U.list([$Html.text("UX")]))
-              ,A2($Html.h2,styler(Graphic),_U.list([$Html.text("GRAPHIC")]))
-              ,A2($Html.h2,
-              styler(Photograph),
-              _U.list([$Html.text("PHOTOGRAPH")]))]));
+      _U.list([styler(All)
+              ,styler(Interface)
+              ,styler(UX)
+              ,styler(Graphic)
+              ,styler(Photograph)]));
    });
    var project = F7(function (title,
    subtitle,
@@ -12902,7 +12906,7 @@ Elm.Main.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "position",
                                               "absolute")
-                                              ,A2(_op["=>"],"bottom","40px")
+                                              ,A2(_op["=>"],"bottom","20px")
                                               ,A2(_op["=>"],"left","40px")]))]),
       _U.list([A2($Html.h3,
               _U.list([]),
@@ -12914,8 +12918,8 @@ Elm.Main.make = function (_elm) {
               _U.list([$Html.text(A2($Basics._op["++"],
               subtitle,
               A2($Basics._op["++"]," - ",date)))]))]))]));
-      var _p1 = model.current;
-      if (_p1.ctor === "All") {
+      var _p2 = model.current;
+      if (_p2.ctor === "All") {
             return rendered;
          } else {
             return _U.eq(category,
@@ -12931,7 +12935,8 @@ Elm.Main.make = function (_elm) {
                                               "#50e3c2")
                                               ,A2(_op["=>"],"fontFamily","sans-serif")
                                               ,A2(_op["=>"],"maxWidth","1440px")
-                                              ,A2(_op["=>"],"margin","auto")]))]),
+                                              ,A2(_op["=>"],"margin","auto")
+                                              ,A2(_op["=>"],"backgroundColor","#f2f9fa")]))]),
       _U.list([logo
               ,hamburger
               ,title$
