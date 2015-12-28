@@ -32,12 +32,16 @@ port title =
     "Gg"
 
 
-type Model
+type Category
     = All
     | Interface
     | UX
     | Graphic
     | Photograph
+
+
+type alias Model =
+    Category
 
 
 model : Model
@@ -62,12 +66,16 @@ view address model =
         [ style
             [ "color" => "#50e3c2"
             , "fontFamily" => "sans-serif"
+            , "maxWidth" => "1440px"
+            , "margin" => "auto"
             ]
         ]
         [ logo
         , hamburger
         , title'
         , selectors address model
+        , project "JBL CONNECT" "APP" "JULY,2015" UX 541.4 412 model
+        , project "GIGI" "WEBSITE" "DEC,2015" Graphic 776 412 model
         ]
 
 
@@ -171,3 +179,43 @@ selectors address model =
                 (styler Photograph)
                 [ text "PHOTOGRAPH" ]
             ]
+
+
+project : String -> String -> String -> Category -> Float -> Float -> Model -> Html
+project title subtitle date category w h model =
+    let
+        rendered =
+            div
+                [ style
+                    [ "width" => (toString w ++ "px")
+                    , "height" => (toString h ++ "px")
+                    , "backgroundColor" => "#ffffff"
+                    , "color" => "#333333"
+                    , "fontFamily" => "monospace"
+                    , "position" => "relative"
+                    , "left" => "30px"
+                    , "display" => "inline-block"
+                    , "margin" => "21px"
+                    ]
+                ]
+                [ div
+                    [ style
+                        [ "position" => "absolute"
+                        , "bottom" => "40px"
+                        , "left" => "40px"
+                        ]
+                    ]
+                    [ h3 [] [ text <| "<" ++ title ++ ">" ]
+                    , h4 [] [ text <| subtitle ++ " - " ++ date ]
+                    ]
+                ]
+    in
+        case model of
+            All ->
+                rendered
+
+            _ ->
+                if category == model then
+                    rendered
+                else
+                    div [] []
