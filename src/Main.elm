@@ -9,6 +9,7 @@ import Material.Icons.Social
 import Material.Icons.Navigation
 import Task
 import Color
+import String
 import StartApp
 
 
@@ -77,6 +78,7 @@ view address model =
             , "fontFamily" => "sans-serif"
             , "maxWidth" => "1440px"
             , "margin" => "auto"
+            , "backgroundColor" => "#f2f9fa"
             ]
         ]
         [ logo
@@ -99,7 +101,7 @@ view address model =
 logo : Html
 logo =
     div
-        []
+        [ style [ "position" => "absolute" ] ]
         [ div
             [ style
                 [ "position" => "absolute"
@@ -129,7 +131,8 @@ title' : Html
 title' =
     h1
         [ style
-            [ "top" => "41px"
+            [ "position" => "relative"
+            , "top" => "41px"
             , "textAlign" => "center"
             ]
         ]
@@ -157,17 +160,19 @@ hamburger =
 selectors : Signal.Address Action -> Model -> Html
 selectors address model =
     let
-        styler : Category -> List Html.Attribute
+        styler : Category -> Html
         styler category =
-            [ classList [ "selected" => (category == model.current) ]
-            , style
-                [ "display" => "inherit"
-                , "padding" => "15px"
+            h2
+                [ classList [ "selected" => (category == model.current) ]
+                , style
+                    [ "display" => "inherit"
+                    , "padding" => "15px"
+                    ]
+                , onClick address (Click category)
+                , onMouseOver address (Hover (Just category))
+                , onMouseLeave address (Hover Nothing)
                 ]
-            , onClick address (Click category)
-            , onMouseOver address (Hover (Just category))
-            , onMouseLeave address (Hover Nothing)
-            ]
+                [ text (category |> toString >> String.toUpper) ]
     in
         div
             [ style
@@ -177,21 +182,11 @@ selectors address model =
                 , "cursor" => "pointer"
                 ]
             ]
-            [ h2
-                (styler All)
-                [ text "ALL" ]
-            , h2
-                (styler Interface)
-                [ text "INTERFACE" ]
-            , h2
-                (styler UX)
-                [ text "UX" ]
-            , h2
-                (styler Graphic)
-                [ text "GRAPHIC" ]
-            , h2
-                (styler Photograph)
-                [ text "PHOTOGRAPH" ]
+            [ styler All
+            , styler Interface
+            , styler UX
+            , styler Graphic
+            , styler Photograph
             ]
 
 
@@ -221,7 +216,7 @@ project title subtitle date category w h model =
                 [ div
                     [ style
                         [ "position" => "absolute"
-                        , "bottom" => "40px"
+                        , "bottom" => "20px"
                         , "left" => "40px"
                         ]
                     ]
