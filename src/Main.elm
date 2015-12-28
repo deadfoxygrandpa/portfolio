@@ -1,6 +1,7 @@
 module Main (..) where
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Effects exposing (..)
 import Task
 import StartApp
@@ -55,3 +56,8 @@ view address model =
     div
         []
         [ text "welp," ]
+
+
+(=>) : a -> b -> ( a, b )
+(=>) a b =
+    ( a, b )
