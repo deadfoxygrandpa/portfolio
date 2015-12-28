@@ -2,6 +2,7 @@ module Main (..) where
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Effects exposing (..)
 import Svg
 import Material.Icons.Social
@@ -64,8 +65,9 @@ view address model =
             ]
         ]
         [ logo
-        , title'
         , hamburger
+        , title'
+        , selectors address model
         ]
 
 
@@ -123,9 +125,49 @@ hamburger =
             , "right" => "50px"
             , "width" => "50px"
             , "height" => "30px"
+            , "cursor" => "pointer"
             ]
         ]
         [ Svg.svg
             []
             [ Material.Icons.Navigation.menu (Color.rgb 74 74 74) 50 ]
         ]
+
+
+selectors : Signal.Address Action -> Model -> Html
+selectors address model =
+    let
+        styler : Model -> List Html.Attribute
+        styler model' =
+            [ classList [ "selected" => (model' == model) ]
+            , style
+                [ "display" => "inherit"
+                , "padding" => "15px"
+                ]
+            , onClick address (Click model')
+            ]
+    in
+        div
+            [ style
+                [ "textAlign" => "center"
+                , "display" => "inline-block"
+                , "width" => "100%"
+                , "cursor" => "pointer"
+                ]
+            ]
+            [ h2
+                (styler All)
+                [ text "ALL" ]
+            , h2
+                (styler Interface)
+                [ text "INTERFACE" ]
+            , h2
+                (styler UX)
+                [ text "UX" ]
+            , h2
+                (styler Graphic)
+                [ text "GRAPHIC" ]
+            , h2
+                (styler Photograph)
+                [ text "PHOTOGRAPH" ]
+            ]

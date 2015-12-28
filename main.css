@@ -5,3 +5,14 @@ body {
 h1 {
 	font-size: 49.2px;
 }
+
+h2 {
+  font-size: 24px;
+  color: #9b9b9b;
+  font-weight: normal;
+}
+
+h2.selected {
+  color: #50e3c2;
+  font-weight: bold;
+}
