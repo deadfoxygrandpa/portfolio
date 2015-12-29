@@ -11,6 +11,7 @@ import Material.Icons.Navigation
 import Task
 import Color
 import String
+import Result
 import StartApp
 
 
@@ -47,6 +48,7 @@ type alias Model =
     , hovered : Maybe Category
     , projects : List ( ID, Project )
     , nextID : Int
+    , pendingProject : PartialProject
     }
 
 
@@ -66,6 +68,7 @@ model =
         , ( 4, Project "HORIZON" "UX" "JULY,2014" Photograph 670 130 )
         ]
         5
+        emptyPartialProject
 
 
 type Action
@@ -73,6 +76,8 @@ type Action
     | Hover (Maybe Category)
     | AddProject Project
     | RemoveProject ID
+    | UpdatePartialProject String String
+    | SubmitNewProject
 
 
 
@@ -97,6 +102,89 @@ update action model =
 
         RemoveProject id ->
             ( { model | projects = List.filter (\( pid, _ ) -> pid /= id) model.projects }, none )
+
+        UpdatePartialProject field value ->
+            let
+                partialProject = model.pendingProject
+
+                newProject =
+                    case field of
+                        "title" ->
+                            { partialProject | title = Just value }
+
+                        "subtitle" ->
+                            { partialProject | subtitle = Just value }
+
+                        "date" ->
+                            { partialProject | date = Just value }
+
+                        "category" ->
+                            let
+                                newCategory =
+                                    case value of
+                                        "Interface" ->
+                                            Just Interface
+
+                                        "UX" ->
+                                            Just UX
+
+                                        "Graphic" ->
+                                            Just Graphic
+
+                                        "Photograph" ->
+                                            Just Photograph
+
+                                        _ ->
+                                            Nothing
+                            in
+                                { partialProject | category = newCategory }
+
+                        "width" ->
+                            case String.toFloat value of
+                                Result.Ok f ->
+                                    { partialProject | w = Just f }
+
+                                Result.Err _ ->
+                                    { partialProject | w = Nothing }
+
+                        "height" ->
+                            case String.toFloat value of
+                                Result.Ok f ->
+                                    { partialProject | h = Just f }
+
+                                Result.Err _ ->
+                                    { partialProject | h = Nothing }
+
+                        _ ->
+                            partialProject
+            in
+                ( { model | pendingProject = newProject }, none )
+
+        SubmitNewProject ->
+            let
+                andThen = Maybe.andThen
+
+                newProject =
+                    model.pendingProject.title
+                        `andThen` \title ->
+                                    model.pendingProject.subtitle
+                                        `andThen` \subtitle ->
+                                                    model.pendingProject.date
+                                                        `andThen` \date ->
+                                                                    model.pendingProject.category
+                                                                        `andThen` \category ->
+                                                                                    model.pendingProject.w
+                                                                                        `andThen` \w ->
+                                                                                                    model.pendingProject.h
+                                                                                                        `andThen` \h ->
+                                                                                                                    (Just <| Project title subtitle date category w h)
+            in
+                case newProject of
+                    Just project ->
+                        update (AddProject project) { model | pendingProject = emptyPartialProject }
+
+                    Nothing ->
+                        ( model, none )
 
 
 view : Signal.Address Action -> Model -> Html
@@ -231,6 +319,11 @@ selectors address model =
             ]
 
 
+addProjectForm : Signal.Address Action -> Html
+addProjectForm address =
+    div [] []
+
+
 type alias Project =
     { title : String
     , subtitle : String
@@ -239,6 +332,21 @@ type alias Project =
     , w : Float
     , h : Float
     }
+
+
+type alias PartialProject =
+    { title : Maybe String
+    , subtitle : Maybe String
+    , date : Maybe String
+    , category : Maybe Category
+    , w : Maybe Float
+    , h : Maybe Float
+    }
+
+
+emptyPartialProject : PartialProject
+emptyPartialProject =
+    PartialProject Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 projects : Signal.Address Action -> Model -> Html
