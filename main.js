@@ -12772,6 +12772,19 @@ Elm.Main.make = function (_elm) {
    $Svg$Attributes = Elm.Svg.Attributes.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
+   var PartialProject = F6(function (a,b,c,d,e,f) {
+      return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
+   });
+   var emptyPartialProject = A6(PartialProject,
+   $Maybe.Nothing,
+   $Maybe.Nothing,
+   $Maybe.Nothing,
+   $Maybe.Nothing,
+   $Maybe.Nothing,
+   $Maybe.Nothing);
+   var Project = F6(function (a,b,c,d,e,f) {
+      return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
+   });
    _op["=>"] = F2(function (a,b) {
       return {ctor: "_Tuple2",_0: a,_1: b};
    });
@@ -12828,29 +12841,274 @@ Elm.Main.make = function (_elm) {
                                            ,A2(_op["=>"],"top","41px")
                                            ,A2(_op["=>"],"textAlign","center")]))]),
    _U.list([$Html.text("PROJECTS")]));
+   var SubmitNewProject = {ctor: "SubmitNewProject"};
+   var UpdatePartialProject = F2(function (a,b) {
+      return {ctor: "UpdatePartialProject",_0: a,_1: b};
+   });
+   var addProjectForm = function (address) {
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([A2($Html.input,
+              _U.list([A3($Html$Events.on,
+              "input",
+              $Html$Events.targetValue,
+              function (_p0) {
+                 return A2($Signal.message,
+                 address,
+                 A2(UpdatePartialProject,"title",_p0));
+              })]),
+              _U.list([]))
+              ,A2($Html.input,
+              _U.list([A3($Html$Events.on,
+              "input",
+              $Html$Events.targetValue,
+              function (_p1) {
+                 return A2($Signal.message,
+                 address,
+                 A2(UpdatePartialProject,"subtitle",_p1));
+              })]),
+              _U.list([]))
+              ,A2($Html.input,
+              _U.list([A3($Html$Events.on,
+              "input",
+              $Html$Events.targetValue,
+              function (_p2) {
+                 return A2($Signal.message,
+                 address,
+                 A2(UpdatePartialProject,"date",_p2));
+              })]),
+              _U.list([]))
+              ,A2($Html.select,
+              _U.list([A3($Html$Events.on,
+              "change",
+              $Html$Events.targetValue,
+              function (_p3) {
+                 return A2($Signal.message,
+                 address,
+                 A2(UpdatePartialProject,"category",_p3));
+              })]),
+              _U.list([A2($Html.option,
+                      _U.list([]),
+                      _U.list([$Html.text("Interface")]))
+                      ,A2($Html.option,_U.list([]),_U.list([$Html.text("UX")]))
+                      ,A2($Html.option,_U.list([]),_U.list([$Html.text("Graphic")]))
+                      ,A2($Html.option,
+                      _U.list([]),
+                      _U.list([$Html.text("Photograph")]))]))
+              ,A2($Html.input,
+              _U.list([A3($Html$Events.on,
+              "input",
+              $Html$Events.targetValue,
+              function (_p4) {
+                 return A2($Signal.message,
+                 address,
+                 A2(UpdatePartialProject,"width",_p4));
+              })]),
+              _U.list([]))
+              ,A2($Html.input,
+              _U.list([A3($Html$Events.on,
+              "input",
+              $Html$Events.targetValue,
+              function (_p5) {
+                 return A2($Signal.message,
+                 address,
+                 A2(UpdatePartialProject,"height",_p5));
+              })]),
+              _U.list([]))
+              ,A2($Html.button,
+              _U.list([A2($Html$Events.onClick,address,SubmitNewProject)]),
+              _U.list([$Html.text("Add")]))]));
+   };
+   var RemoveProject = function (a) {
+      return {ctor: "RemoveProject",_0: a};
+   };
+   var viewProject = F2(function (address,_p6) {
+      var _p7 = _p6;
+      var _p8 = _p7._1;
+      return A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "width",
+                                              A2($Basics._op["++"],$Basics.toString(_p8.w),"px"))
+                                              ,A2(_op["=>"],
+                                              "height",
+                                              A2($Basics._op["++"],$Basics.toString(_p8.h),"px"))
+                                              ,A2(_op["=>"],"backgroundColor","#ffffff")
+                                              ,A2(_op["=>"],"color","#333333")
+                                              ,A2(_op["=>"],"fontFamily","monospace")
+                                              ,A2(_op["=>"],"position","relative")
+                                              ,A2(_op["=>"],"left","40px")
+                                              ,A2(_op["=>"],"display","inline-block")
+                                              ,A2(_op["=>"],"margin","11px")]))
+              ,A2($Html$Events.onClick,address,RemoveProject(_p7._0))]),
+      _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "position",
+                                              "absolute")
+                                              ,A2(_op["=>"],"bottom","20px")
+                                              ,A2(_op["=>"],"left","40px")]))]),
+      _U.list([A2($Html.h3,
+              _U.list([]),
+              _U.list([$Html.text(A2($Basics._op["++"],
+              "<",
+              A2($Basics._op["++"],_p8.title,">")))]))
+              ,A2($Html.h4,
+              _U.list([]),
+              _U.list([$Html.text(A2($Basics._op["++"],
+              _p8.subtitle,
+              A2($Basics._op["++"]," - ",_p8.date)))]))]))]));
+   });
+   var AddProject = function (a) {
+      return {ctor: "AddProject",_0: a};
+   };
    var Hover = function (a) {    return {ctor: "Hover",_0: a};};
    var Click = function (a) {    return {ctor: "Click",_0: a};};
-   var Model = F2(function (a,b) {
-      return {current: a,hovered: b};
-   });
-   var update = F2(function (action,model) {
-      var _p0 = action;
-      if (_p0.ctor === "Click") {
-            return {ctor: "_Tuple2"
-                   ,_0: A2(Model,_p0._0,$Maybe.Nothing)
-                   ,_1: $Effects.none};
-         } else {
-            return {ctor: "_Tuple2"
-                   ,_0: _U.update(model,{hovered: _p0._0})
-                   ,_1: $Effects.none};
-         }
+   var Model = F5(function (a,b,c,d,e) {
+      return {current: a
+             ,hovered: b
+             ,projects: c
+             ,nextID: d
+             ,pendingProject: e};
    });
    var Photograph = {ctor: "Photograph"};
    var Graphic = {ctor: "Graphic"};
    var UX = {ctor: "UX"};
    var Interface = {ctor: "Interface"};
+   var update = F2(function (action,model) {
+      update: while (true) {
+         var _p9 = action;
+         switch (_p9.ctor)
+         {case "Click": return {ctor: "_Tuple2"
+                               ,_0: _U.update(model,{current: _p9._0,hovered: $Maybe.Nothing})
+                               ,_1: $Effects.none};
+            case "Hover": return {ctor: "_Tuple2"
+                                 ,_0: _U.update(model,{hovered: _p9._0})
+                                 ,_1: $Effects.none};
+            case "AddProject": return {ctor: "_Tuple2"
+                                      ,_0: _U.update(model,
+                                      {projects: A2($List._op["::"],
+                                      {ctor: "_Tuple2",_0: model.nextID,_1: _p9._0},
+                                      model.projects)
+                                      ,nextID: model.nextID + 1})
+                                      ,_1: $Effects.none};
+            case "RemoveProject": return {ctor: "_Tuple2"
+                                         ,_0: _U.update(model,
+                                         {projects: A2($List.filter,
+                                         function (_p10) {
+                                            var _p11 = _p10;
+                                            return !_U.eq(_p11._0,_p9._0);
+                                         },
+                                         model.projects)})
+                                         ,_1: $Effects.none};
+            case "UpdatePartialProject": var _p16 = _p9._1;
+              var partialProject = model.pendingProject;
+              var newProject = function () {
+                 var _p12 = _p9._0;
+                 switch (_p12)
+                 {case "title": return _U.update(partialProject,
+                      {title: $Maybe.Just(_p16)});
+                    case "subtitle": return _U.update(partialProject,
+                      {subtitle: $Maybe.Just(_p16)});
+                    case "date": return _U.update(partialProject,
+                      {date: $Maybe.Just(_p16)});
+                    case "category": var newCategory = function () {
+                         var _p13 = _p16;
+                         switch (_p13)
+                         {case "Interface": return $Maybe.Just(Interface);
+                            case "UX": return $Maybe.Just(UX);
+                            case "Graphic": return $Maybe.Just(Graphic);
+                            case "Photograph": return $Maybe.Just(Photograph);
+                            default: return $Maybe.Nothing;}
+                      }();
+                      return _U.update(partialProject,{category: newCategory});
+                    case "width": var _p14 = $String.toFloat(_p16);
+                      if (_p14.ctor === "Ok") {
+                            return _U.update(partialProject,{w: $Maybe.Just(_p14._0)});
+                         } else {
+                            return _U.update(partialProject,{w: $Maybe.Nothing});
+                         }
+                    case "height": var _p15 = $String.toFloat(_p16);
+                      if (_p15.ctor === "Ok") {
+                            return _U.update(partialProject,{h: $Maybe.Just(_p15._0)});
+                         } else {
+                            return _U.update(partialProject,{h: $Maybe.Nothing});
+                         }
+                    default: return partialProject;}
+              }();
+              return {ctor: "_Tuple2"
+                     ,_0: _U.update(model,
+                     {pendingProject: A2($Debug.log,"proj",newProject)})
+                     ,_1: $Effects.none};
+            default: var andThen = $Maybe.andThen;
+              var newProject = A2(andThen,
+              model.pendingProject.title,
+              function (title) {
+                 return A2(andThen,
+                 model.pendingProject.subtitle,
+                 function (subtitle) {
+                    return A2(andThen,
+                    model.pendingProject.date,
+                    function (date) {
+                       return A2(andThen,
+                       model.pendingProject.category,
+                       function (category) {
+                          return A2(andThen,
+                          model.pendingProject.w,
+                          function (w) {
+                             return A2(andThen,
+                             model.pendingProject.h,
+                             function (h) {
+                                return $Maybe.Just(A6(Project,
+                                title,
+                                subtitle,
+                                date,
+                                category,
+                                w,
+                                h));
+                             });
+                          });
+                       });
+                    });
+                 });
+              });
+              var _p17 = newProject;
+              if (_p17.ctor === "Just") {
+                    var _v8 = AddProject(_p17._0),
+                    _v9 = _U.update(model,{pendingProject: emptyPartialProject});
+                    action = _v8;
+                    model = _v9;
+                    continue update;
+                 } else {
+                    return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+                 }}
+      }
+   });
    var All = {ctor: "All"};
-   var model = A2(Model,All,$Maybe.Nothing);
+   var model = A5(Model,
+   All,
+   $Maybe.Nothing,
+   _U.list([{ctor: "_Tuple2"
+            ,_0: 0
+            ,_1: A6(Project,"JBL CONNECT","APP","JULY,2015",UX,541.4,412)}
+           ,{ctor: "_Tuple2"
+            ,_0: 1
+            ,_1: A6(Project,"GIGI","WEBSITE","DEC,2015",Interface,776,412)}
+           ,{ctor: "_Tuple2"
+            ,_0: 2
+            ,_1: A6(Project,"BREATH","POSTER","DEC,2011",Graphic,310,412)}
+           ,{ctor: "_Tuple2"
+            ,_0: 3
+            ,_1: A6(Project,"FUTURE","POSTER","DEC,2013",Graphic,310,412)}
+           ,{ctor: "_Tuple2"
+            ,_0: 4
+            ,_1: A6(Project,
+            "HORIZON",
+            "UX",
+            "JULY,2014",
+            Photograph,
+            670,
+            130)}]),
+   5,
+   emptyPartialProject);
    var selectors = F2(function (address,model) {
       var styler = function (category) {
          return A2($Html.h2,
@@ -12871,8 +13129,8 @@ Elm.Main.make = function (_elm) {
                  address,
                  Hover($Maybe.Just(category)))
                  ,A2($Html$Events.onMouseLeave,address,Hover($Maybe.Nothing))]),
-         _U.list([$Html.text(function (_p1) {
-            return $String.toUpper($Basics.toString(_p1));
+         _U.list([$Html.text(function (_p18) {
+            return $String.toUpper($Basics.toString(_p18));
          }(category))]));
       };
       return A2($Html.div,
@@ -12887,57 +13145,20 @@ Elm.Main.make = function (_elm) {
               ,styler(Graphic)
               ,styler(Photograph)]));
    });
-   var project = F7(function (title,
-   subtitle,
-   date,
-   category,
-   w,
-   h,
-   model) {
-      var rendered = A2($Html.div,
+   var projects = F2(function (address,model) {
+      return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                              "width",
-                                              A2($Basics._op["++"],$Basics.toString(w),"px"))
-                                              ,A2(_op["=>"],
-                                              "height",
-                                              A2($Basics._op["++"],$Basics.toString(h),"px"))
-                                              ,A2(_op["=>"],
-                                              "backgroundColor",
-                                              _U.eq(model.hovered,
-                                              $Maybe.Just(category)) || _U.eq(model.hovered,
-                                              $Maybe.Just(All)) ? "#ffffff" : _U.eq(model.hovered,
-                                              $Maybe.Nothing) ? "#ffffff" : "#eeeeee")
-                                              ,A2(_op["=>"],"color","#333333")
-                                              ,A2(_op["=>"],"fontFamily","monospace")
-                                              ,A2(_op["=>"],"position","relative")
-                                              ,A2(_op["=>"],"left","40px")
-                                              ,A2(_op["=>"],"display","inline-block")
-                                              ,A2(_op["=>"],"margin","11px")]))]),
-      _U.list([A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                              "position",
-                                              "absolute")
-                                              ,A2(_op["=>"],"bottom","20px")
-                                              ,A2(_op["=>"],"left","40px")]))]),
-      _U.list([A2($Html.h3,
-              _U.list([]),
-              _U.list([$Html.text(A2($Basics._op["++"],
-              "<",
-              A2($Basics._op["++"],title,">")))]))
-              ,A2($Html.h4,
-              _U.list([]),
-              _U.list([$Html.text(A2($Basics._op["++"],
-              subtitle,
-              A2($Basics._op["++"]," - ",date)))]))]))]));
-      var _p2 = model.current;
-      if (_p2.ctor === "All") {
-            return rendered;
-         } else {
-            return _U.eq(category,
-            model.current) ? rendered : A2($Html.div,
-            _U.list([]),
-            _U.list([]));
-         }
+      "position",
+      "relative")]))]),
+      A2($List.map,
+      viewProject(address),
+      A2($List.filter,
+      function (_p19) {
+         var _p20 = _p19;
+         return _U.eq(_p20._1.category,
+         model.current) || _U.eq(model.current,All);
+      },
+      model.projects)));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -12952,18 +13173,8 @@ Elm.Main.make = function (_elm) {
               ,hamburger
               ,title$
               ,A2(selectors,address,model)
-              ,A7(project,"JBL CONNECT","APP","JULY,2015",UX,541.4,412,model)
-              ,A7(project,"GIGI","WEBSITE","DEC,2015",Interface,776,412,model)
-              ,A7(project,"BREATH","POSTER","DEC,2011",Graphic,310,412,model)
-              ,A7(project,"FUTURE","POSTER","DEC,2013",Graphic,310,412,model)
-              ,A7(project,
-              "HORIZON",
-              "UX",
-              "JULY,2014",
-              Photograph,
-              670,
-              130,
-              model)]));
+              ,A2(projects,address,model)
+              ,addProjectForm(address)]));
    });
    var title = Elm.Native.Port.make(_elm).outbound("title",
    function (v) {
@@ -12991,11 +13202,20 @@ Elm.Main.make = function (_elm) {
                              ,model: model
                              ,Click: Click
                              ,Hover: Hover
+                             ,AddProject: AddProject
+                             ,RemoveProject: RemoveProject
+                             ,UpdatePartialProject: UpdatePartialProject
+                             ,SubmitNewProject: SubmitNewProject
                              ,update: update
                              ,view: view
                              ,logo: logo
                              ,hamburger: hamburger
                              ,title$: title$
                              ,selectors: selectors
-                             ,project: project};
+                             ,addProjectForm: addProjectForm
+                             ,Project: Project
+                             ,PartialProject: PartialProject
+                             ,emptyPartialProject: emptyPartialProject
+                             ,projects: projects
+                             ,viewProject: viewProject};
 };
