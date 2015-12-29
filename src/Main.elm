@@ -45,17 +45,34 @@ type Category
 type alias Model =
     { current : Category
     , hovered : Maybe Category
+    , projects : List ( ID, Project )
+    , nextID : Int
     }
+
+
+type alias ID =
+    Int
 
 
 model : Model
 model =
-    Model All Nothing
+    Model
+        All
+        Nothing
+        [ ( 0, Project "JBL CONNECT" "APP" "JULY,2015" UX 541.4 412 )
+        , ( 1, Project "GIGI" "WEBSITE" "DEC,2015" Interface 776 412 )
+        , ( 2, Project "BREATH" "POSTER" "DEC,2011" Graphic 310 412 )
+        , ( 3, Project "FUTURE" "POSTER" "DEC,2013" Graphic 310 412 )
+        , ( 4, Project "HORIZON" "UX" "JULY,2014" Photograph 670 130 )
+        ]
+        5
 
 
 type Action
     = Click Category
     | Hover (Maybe Category)
+    | AddProject Project
+    | RemoveProject ID
 
 
 
@@ -65,10 +82,21 @@ type Action
 update action model =
     case action of
         Click category ->
-            ( Model category Nothing, none )
+            ( { model | current = category, hovered = Nothing }, none )
 
         Hover category ->
             ( { model | hovered = category }, none )
+
+        AddProject project ->
+            ( { model
+                | projects = ( model.nextID, project ) :: model.projects
+                , nextID = model.nextID + 1
+              }
+            , none
+            )
+
+        RemoveProject id ->
+            ( { model | projects = List.filter (\( pid, _ ) -> pid /= id) model.projects }, none )
 
 
 view : Signal.Address Action -> Model -> Html
@@ -86,11 +114,7 @@ view address model =
         , hamburger
         , title'
         , selectors address model
-        , project "JBL CONNECT" "APP" "JULY,2015" UX 541.4 412 model
-        , project "GIGI" "WEBSITE" "DEC,2015" Interface 776 412 model
-        , project "BREATH" "POSTER" "DEC,2011" Graphic 310 412 model
-        , project "FUTURE" "POSTER" "DEC,2013" Graphic 310 412 model
-        , project "HORIZON" "UX" "JULY,2014" Photograph 670 130 model
+        , projects address model
         ]
 
 
@@ -207,47 +231,54 @@ selectors address model =
             ]
 
 
-project : String -> String -> String -> Category -> Float -> Float -> Model -> Html
-project title subtitle date category w h model =
-    let
-        rendered =
-            div
-                [ style
-                    [ "width" => (toString w ++ "px")
-                    , "height" => (toString h ++ "px")
-                    , "backgroundColor"
-                        => if model.hovered == (Just category) || model.hovered == (Just All) then
-                            "#ffffff"
-                           else if model.hovered == Nothing then
-                            "#ffffff"
-                           else
-                            "#eeeeee"
-                    , "color" => "#333333"
-                    , "fontFamily" => "monospace"
-                    , "position" => "relative"
-                    , "left" => "40px"
-                    , "display" => "inline-block"
-                    , "margin" => "11px"
-                    ]
-                ]
-                [ div
-                    [ style
-                        [ "position" => "absolute"
-                        , "bottom" => "20px"
-                        , "left" => "40px"
-                        ]
-                    ]
-                    [ h3 [] [ text <| "<" ++ title ++ ">" ]
-                    , h4 [] [ text <| subtitle ++ " - " ++ date ]
-                    ]
-                ]
-    in
-        case model.current of
-            All ->
-                rendered
+type alias Project =
+    { title : String
+    , subtitle : String
+    , date : String
+    , category : Category
+    , w : Float
+    , h : Float
+    }
 
-            _ ->
-                if category == model.current then
-                    rendered
-                else
-                    div [] []
+
+projects : Signal.Address Action -> Model -> Html
+projects address model =
+    div
+        [ style
+            [ "position" => "relative"
+            ]
+        ]
+        <| List.map
+            (viewProject address)
+        <| List.filter
+            (\( _, project ) -> project.category == model.current || model.current == All)
+            model.projects
+
+
+viewProject : Signal.Address Action -> ( ID, Project ) -> Html
+viewProject address ( id, project ) =
+    div
+        [ style
+            [ "width" => (toString project.w ++ "px")
+            , "height" => (toString project.h ++ "px")
+            , "backgroundColor" => "#ffffff"
+            , "color" => "#333333"
+            , "fontFamily" => "monospace"
+            , "position" => "relative"
+            , "left" => "40px"
+            , "display" => "inline-block"
+            , "margin" => "11px"
+            ]
+        , onClick address (RemoveProject id)
+        ]
+        [ div
+            [ style
+                [ "position" => "absolute"
+                , "bottom" => "20px"
+                , "left" => "40px"
+                ]
+            ]
+            [ h3 [] [ text <| "<" ++ project.title ++ ">" ]
+            , h4 [] [ text <| project.subtitle ++ " - " ++ project.date ]
+            ]
+        ]
