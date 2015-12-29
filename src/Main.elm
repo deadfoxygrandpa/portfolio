@@ -158,7 +158,7 @@ update action model =
                         _ ->
                             partialProject
             in
-                ( { model | pendingProject = newProject }, none )
+                ( { model | pendingProject = Debug.log "proj" newProject }, none )
 
         SubmitNewProject ->
             let
@@ -322,7 +322,7 @@ selectors address model =
 
 addProjectForm : Signal.Address Action -> Html
 addProjectForm address =
-    Html.form
+    div
         []
         [ input [ on "input" targetValue (Signal.message address << UpdatePartialProject "title") ] []
         , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "subtitle") ] []
