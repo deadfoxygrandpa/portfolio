@@ -203,6 +203,7 @@ view address model =
         , title'
         , selectors address model
         , projects address model
+        , addProjectForm address
         ]
 
 
@@ -321,7 +322,22 @@ selectors address model =
 
 addProjectForm : Signal.Address Action -> Html
 addProjectForm address =
-    div [] []
+    Html.form
+        []
+        [ input [ on "input" targetValue (Signal.message address << UpdatePartialProject "title") ] []
+        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "subtitle") ] []
+        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "date") ] []
+        , select
+            [ on "change" targetValue (Signal.message address << UpdatePartialProject "category") ]
+            [ option [] [ text "Interface" ]
+            , option [] [ text "UX" ]
+            , option [] [ text "Graphic" ]
+            , option [] [ text "Photograph" ]
+            ]
+        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "width") ] []
+        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "height") ] []
+        , button [ onClick address SubmitNewProject ] [ text "Add" ]
+        ]
 
 
 type alias Project =
