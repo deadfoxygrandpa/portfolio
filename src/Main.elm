@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Effects exposing (..)
 import Svg
+import Svg.Attributes
 import Material.Icons.Social
 import Material.Icons.Navigation
 import Task
@@ -75,8 +76,8 @@ view address model =
     div
         [ style
             [ "color" => "#50e3c2"
-            , "fontFamily" => "sans-serif"
-            , "maxWidth" => "1440px"
+            , "fontFamily" => "Raleway,sans-serif"
+            , "maxWidth" => "75em"
             , "margin" => "auto"
             , "backgroundColor" => "#f2f9fa"
             ]
@@ -110,7 +111,9 @@ logo =
                 ]
             ]
             [ Svg.svg
-                []
+                [ Svg.Attributes.width "50px"
+                , Svg.Attributes.height "50px"
+                ]
                 [ Material.Icons.Social.public (Color.rgb 248 231 28) 50 ]
             ]
         , div
@@ -121,8 +124,35 @@ logo =
                 ]
             ]
             [ Svg.svg
-                []
+                [ Svg.Attributes.width "50px"
+                , Svg.Attributes.height "50px"
+                ]
                 [ Material.Icons.Social.public (Color.rgb 80 227 194) 50 ]
+            ]
+        ]
+
+
+hamburger : Html
+hamburger =
+    div
+        [ style
+            [ "position" => "relative"
+            , "width" => "100%"
+            ]
+        ]
+        [ div
+            [ style
+                [ "position" => "absolute"
+                , "top" => "35px"
+                , "right" => "35px"
+                , "cursor" => "pointer"
+                ]
+            ]
+            [ Svg.svg
+                [ Svg.Attributes.width "50px"
+                , Svg.Attributes.height "50px"
+                ]
+                [ Material.Icons.Navigation.menu (Color.rgb 74 74 74) 50 ]
             ]
         ]
 
@@ -139,24 +169,6 @@ title' =
         [ text "PROJECTS" ]
 
 
-hamburger : Html
-hamburger =
-    div
-        [ style
-            [ "position" => "fixed"
-            , "top" => "61px"
-            , "right" => "50px"
-            , "width" => "50px"
-            , "height" => "30px"
-            , "cursor" => "pointer"
-            ]
-        ]
-        [ Svg.svg
-            []
-            [ Material.Icons.Navigation.menu (Color.rgb 74 74 74) 50 ]
-        ]
-
-
 selectors : Signal.Address Action -> Model -> Html
 selectors address model =
     let
@@ -167,6 +179,12 @@ selectors address model =
                 , style
                     [ "display" => "inherit"
                     , "padding" => "15px"
+                    , "cursor" => "pointer"
+                    , "backgroundColor"
+                        => if model.hovered == (Just category) then
+                            "#ffffff"
+                           else
+                            "inherit"
                     ]
                 , onClick address (Click category)
                 , onMouseOver address (Hover (Just category))
@@ -179,7 +197,6 @@ selectors address model =
                 [ "textAlign" => "center"
                 , "display" => "inline-block"
                 , "width" => "100%"
-                , "cursor" => "pointer"
                 ]
             ]
             [ styler All
