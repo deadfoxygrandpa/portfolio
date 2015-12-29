@@ -12769,6 +12769,7 @@ Elm.Main.make = function (_elm) {
    $StartApp = Elm.StartApp.make(_elm),
    $String = Elm.String.make(_elm),
    $Svg = Elm.Svg.make(_elm),
+   $Svg$Attributes = Elm.Svg.Attributes.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
    _op["=>"] = F2(function (a,b) {
@@ -12785,7 +12786,8 @@ Elm.Main.make = function (_elm) {
                                                    ,A2(_op["=>"],"top","46px")
                                                    ,A2(_op["=>"],"left","51px")]))]),
            _U.list([A2($Svg.svg,
-           _U.list([]),
+           _U.list([$Svg$Attributes.width("50px")
+                   ,$Svg$Attributes.height("50px")]),
            _U.list([A2($Material$Icons$Social.$public,
            A3($Color.rgb,248,231,28),
            50)]))]))
@@ -12796,10 +12798,29 @@ Elm.Main.make = function (_elm) {
                                                    ,A2(_op["=>"],"top","55.8px")
                                                    ,A2(_op["=>"],"left","94.6px")]))]),
            _U.list([A2($Svg.svg,
-           _U.list([]),
+           _U.list([$Svg$Attributes.width("50px")
+                   ,$Svg$Attributes.height("50px")]),
            _U.list([A2($Material$Icons$Social.$public,
            A3($Color.rgb,80,227,194),
            50)]))]))]));
+   var hamburger = A2($Html.div,
+   _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                           "position",
+                                           "relative")
+                                           ,A2(_op["=>"],"width","100%")]))]),
+   _U.list([A2($Html.div,
+   _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                           "position",
+                                           "absolute")
+                                           ,A2(_op["=>"],"top","35px")
+                                           ,A2(_op["=>"],"right","35px")
+                                           ,A2(_op["=>"],"cursor","pointer")]))]),
+   _U.list([A2($Svg.svg,
+   _U.list([$Svg$Attributes.width("50px")
+           ,$Svg$Attributes.height("50px")]),
+   _U.list([A2($Material$Icons$Navigation.menu,
+   A3($Color.rgb,74,74,74),
+   50)]))]))]));
    var title$ = A2($Html.h1,
    _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                            "position",
@@ -12807,20 +12828,6 @@ Elm.Main.make = function (_elm) {
                                            ,A2(_op["=>"],"top","41px")
                                            ,A2(_op["=>"],"textAlign","center")]))]),
    _U.list([$Html.text("PROJECTS")]));
-   var hamburger = A2($Html.div,
-   _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                           "position",
-                                           "fixed")
-                                           ,A2(_op["=>"],"top","61px")
-                                           ,A2(_op["=>"],"right","50px")
-                                           ,A2(_op["=>"],"width","50px")
-                                           ,A2(_op["=>"],"height","30px")
-                                           ,A2(_op["=>"],"cursor","pointer")]))]),
-   _U.list([A2($Svg.svg,
-   _U.list([]),
-   _U.list([A2($Material$Icons$Navigation.menu,
-   A3($Color.rgb,74,74,74),
-   50)]))]));
    var Hover = function (a) {    return {ctor: "Hover",_0: a};};
    var Click = function (a) {    return {ctor: "Click",_0: a};};
    var Model = F2(function (a,b) {
@@ -12853,7 +12860,12 @@ Elm.Main.make = function (_elm) {
                  ,$Html$Attributes.style(_U.list([A2(_op["=>"],
                                                  "display",
                                                  "inherit")
-                                                 ,A2(_op["=>"],"padding","15px")]))
+                                                 ,A2(_op["=>"],"padding","15px")
+                                                 ,A2(_op["=>"],"cursor","pointer")
+                                                 ,A2(_op["=>"],
+                                                 "backgroundColor",
+                                                 _U.eq(model.hovered,
+                                                 $Maybe.Just(category)) ? "#ffffff" : "inherit")]))
                  ,A2($Html$Events.onClick,address,Click(category))
                  ,A2($Html$Events.onMouseOver,
                  address,
@@ -12868,8 +12880,7 @@ Elm.Main.make = function (_elm) {
                                               "textAlign",
                                               "center")
                                               ,A2(_op["=>"],"display","inline-block")
-                                              ,A2(_op["=>"],"width","100%")
-                                              ,A2(_op["=>"],"cursor","pointer")]))]),
+                                              ,A2(_op["=>"],"width","100%")]))]),
       _U.list([styler(All)
               ,styler(Interface)
               ,styler(UX)
@@ -12933,8 +12944,8 @@ Elm.Main.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "color",
                                               "#50e3c2")
-                                              ,A2(_op["=>"],"fontFamily","sans-serif")
-                                              ,A2(_op["=>"],"maxWidth","1440px")
+                                              ,A2(_op["=>"],"fontFamily","Raleway,sans-serif")
+                                              ,A2(_op["=>"],"maxWidth","75em")
                                               ,A2(_op["=>"],"margin","auto")
                                               ,A2(_op["=>"],"backgroundColor","#f2f9fa")]))]),
       _U.list([logo
@@ -12983,8 +12994,8 @@ Elm.Main.make = function (_elm) {
                              ,update: update
                              ,view: view
                              ,logo: logo
-                             ,title$: title$
                              ,hamburger: hamburger
+                             ,title$: title$
                              ,selectors: selectors
                              ,project: project};
 };
