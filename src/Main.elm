@@ -357,7 +357,7 @@ addProjectForm address =
     div
         [ style
             [ "position" => "fixed"
-            , "top" => "30%"
+            , "top" => "200px"
             , "right" => "100px"
             , "width" => "150px"
             , "display" => "inline-block"
