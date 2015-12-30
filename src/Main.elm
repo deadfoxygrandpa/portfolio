@@ -196,7 +196,6 @@ view address model =
             , "fontFamily" => "Raleway,sans-serif"
             , "maxWidth" => "75em"
             , "margin" => "auto"
-            , "backgroundColor" => "#f2f9fa"
             ]
         ]
         [ logo
