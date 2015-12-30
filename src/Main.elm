@@ -14,6 +14,7 @@ import Color
 import String
 import Result
 import StartApp
+import Menu
 
 
 app : StartApp.App Model
@@ -49,7 +50,7 @@ type alias Model =
     , hovered : Maybe Category
     , projects : List ( ID, Project )
     , nextID : Int
-    , pendingProject : PartialProject
+    , menu : Menu.Model
     , menuOpen : Bool
     }
 
@@ -70,7 +71,7 @@ model =
         , ( 4, Project "HORIZON" "UX" "JULY,2014" Photograph 670 130 )
         ]
         5
-        emptyPartialProject
+        Menu.init
         False
 
 
@@ -79,15 +80,11 @@ type Action
     | Hover (Maybe Category)
     | AddProject Project
     | RemoveProject ID
-    | UpdatePartialProject String String
     | SubmitNewProject
     | OpenMenu
     | CloseMenu
     | ToggleMenu
-
-
-
---update : Action -> a -> ( Model, Effects Action )
+    | MenuAction Menu.Action
 
 
 update action model =
@@ -109,81 +106,9 @@ update action model =
         RemoveProject id ->
             ( { model | projects = List.filter (\( pid, _ ) -> pid /= id) model.projects }, none )
 
-        UpdatePartialProject field value ->
-            let
-                partialProject = model.pendingProject
-
-                newProject =
-                    case field of
-                        "title" ->
-                            { partialProject | title = Just value }
-
-                        "subtitle" ->
-                            { partialProject | subtitle = Just value }
-
-                        "date" ->
-                            { partialProject | date = Just value }
-
-                        "category" ->
-                            let
-                                newCategory =
-                                    case value of
-                                        "Interface" ->
-                                            Just Interface
-
-                                        "UX" ->
-                                            Just UX
-
-                                        "Graphic" ->
-                                            Just Graphic
-
-                                        "Photograph" ->
-                                            Just Photograph
-
-                                        _ ->
-                                            Nothing
-                            in
-                                { partialProject | category = newCategory }
-
-                        "width" ->
-                            case String.toFloat value of
-                                Result.Ok f ->
-                                    { partialProject | w = Just f }
-
-                                Result.Err _ ->
-                                    { partialProject | w = Nothing }
-
-                        "height" ->
-                            case String.toFloat value of
-                                Result.Ok f ->
-                                    { partialProject | h = Just f }
-
-                                Result.Err _ ->
-                                    { partialProject | h = Nothing }
-
-                        _ ->
-                            partialProject
-            in
-                ( { model | pendingProject = Debug.log "proj" newProject }, none )
-
         SubmitNewProject ->
             let
-                andThen = Maybe.andThen
-
-                newProject =
-                    model.pendingProject.title
-                        `andThen` \title ->
-                                    model.pendingProject.subtitle
-                                        `andThen` \subtitle ->
-                                                    model.pendingProject.date
-                                                        `andThen` \date ->
-                                                                    model.pendingProject.category
-                                                                        `andThen` \category ->
-                                                                                    model.pendingProject.w
-                                                                                        `andThen` \w ->
-                                                                                                    model.pendingProject.h
-                                                                                                        `andThen` \h ->
-                                                                                                                    (Just <| Project title subtitle date category w h)
+                newProject = convertPartialProject model.menu.project
             in
                 case newProject of
                     Just project ->
@@ -204,6 +129,22 @@ update action model =
             else
                 update OpenMenu model
 
+        MenuAction menuAction ->
+            let
+                ( newMenu, effect ) = Menu.update menuAction model.menu
+
+                updated = { model | menu = newMenu }
+            in
+                case menuAction of
+                    Menu.Close ->
+                        update CloseMenu updated
+
+                    Menu.Submit ->
+                        update SubmitNewProject updated
+
+                    _ ->
+                        ( updated, none )
+
 
 view : Signal.Address Action -> Model -> Html
 view address model =
@@ -222,7 +163,7 @@ view address model =
            , lazy2 projects address ( model.current, model.projects )
            ]
         ++ if model.menuOpen then
-            [ addProjectForm address ]
+            [ Menu.view (Signal.forwardTo address MenuAction) model.menu ]
            else
             []
 
@@ -352,54 +293,6 @@ selectors address ( current, hovered ) =
             ]
 
 
-addProjectForm : Signal.Address Action -> Html
-addProjectForm address =
-    div
-        [ style
-            [ "position" => "fixed"
-            , "top" => "200px"
-            , "right" => "100px"
-            , "width" => "150px"
-            , "display" => "inline-block"
-            ]
-        ]
-        [ h5 [ style [ "width" => "150px" ] ] [ text "Add New Project" ]
-        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "title") ] []
-        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "subtitle") ] []
-        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "date") ] []
-        , select
-            [ on "change" targetValue (Signal.message address << UpdatePartialProject "category") ]
-            [ option [] [ text "--" ]
-            , option [] [ text "Interface" ]
-            , option [] [ text "UX" ]
-            , option [] [ text "Graphic" ]
-            , option [] [ text "Photograph" ]
-            ]
-        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "width") ] []
-        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "height") ] []
-        , h5
-            [ onClick address SubmitNewProject
-            , style
-                [ "width" => "40px"
-                , "display" => "inline-block"
-                , "cursor" => "pointer"
-                ]
-            ]
-            [ text "Add" ]
-        , h5
-            [ onClick address CloseMenu
-            , style
-                [ "width" => "40px"
-                , "display" => "inline-block"
-                , "position" => "absolute"
-                , "right" => "0px"
-                , "cursor" => "pointer"
-                ]
-            ]
-            [ text "Close" ]
-        ]
-
-
 type alias Project =
     { title : String
     , subtitle : String
@@ -410,19 +303,41 @@ type alias Project =
     }
 
 
-type alias PartialProject =
-    { title : Maybe String
-    , subtitle : Maybe String
-    , date : Maybe String
-    , category : Maybe Category
-    , w : Maybe Float
-    , h : Maybe Float
-    }
+convertPartialProject : Menu.PartialProject -> Maybe Project
+convertPartialProject project =
+    let
+        andThen = Maybe.andThen
 
+        readCategory =
+            case project.category of
+                "Interface" ->
+                    Just Interface
 
-emptyPartialProject : PartialProject
-emptyPartialProject =
-    PartialProject Nothing Nothing Nothing Nothing Nothing Nothing
+                "UX" ->
+                    Just UX
+
+                "Graphic" ->
+                    Just Graphic
+
+                "Photograph" ->
+                    Just Photograph
+
+                _ ->
+                    Nothing
+    in
+        project.title
+            `andThen` \title ->
+                        project.subtitle
+                            `andThen` \subtitle ->
+                                        project.date
+                                            `andThen` \date ->
+                                                        readCategory
+                                                            `andThen` \category ->
+                                                                        project.w
+                                                                            `andThen` \w ->
+                                                                                        project.h
+                                                                                            `andThen` \h ->
+                                                                                                        (Just <| Project title subtitle date category w h)
 
 
 projects : Signal.Address Action -> ( Category, List ( ID, Project ) ) -> Html
