@@ -50,6 +50,7 @@ type alias Model =
     , projects : List ( ID, Project )
     , nextID : Int
     , pendingProject : PartialProject
+    , menuOpen : Bool
     }
 
 
@@ -70,6 +71,7 @@ model =
         ]
         5
         emptyPartialProject
+        False
 
 
 type Action
@@ -79,6 +81,9 @@ type Action
     | RemoveProject ID
     | UpdatePartialProject String String
     | SubmitNewProject
+    | OpenMenu
+    | CloseMenu
+    | ToggleMenu
 
 
 
@@ -187,6 +192,18 @@ update action model =
                     Nothing ->
                         ( model, none )
 
+        OpenMenu ->
+            ( { model | menuOpen = True }, none )
+
+        CloseMenu ->
+            ( { model | menuOpen = False }, none )
+
+        ToggleMenu ->
+            if model.menuOpen then
+                update CloseMenu model
+            else
+                update OpenMenu model
+
 
 view : Signal.Address Action -> Model -> Html
 view address model =
@@ -198,13 +215,16 @@ view address model =
             , "margin" => "auto"
             ]
         ]
-        [ logo
-        , hamburger
-        , title'
-        , lazy2 selectors address ( model.current, model.hovered )
-        , lazy2 projects address ( model.current, model.projects )
-        , addProjectForm address
-        ]
+        <| [ logo
+           , lazy hamburger address
+           , title'
+           , lazy2 selectors address ( model.current, model.hovered )
+           , lazy2 projects address ( model.current, model.projects )
+           ]
+        ++ if model.menuOpen then
+            [ addProjectForm address ]
+           else
+            []
 
 
 (=>) : a -> b -> ( a, b )
@@ -245,8 +265,8 @@ logo =
         ]
 
 
-hamburger : Html
-hamburger =
+hamburger : Signal.Address Action -> Html
+hamburger address =
     div
         [ style
             [ "position" => "relative"
@@ -260,6 +280,7 @@ hamburger =
                 , "right" => "35px"
                 , "cursor" => "pointer"
                 ]
+            , onClick address ToggleMenu
             ]
             [ Svg.svg
                 [ Svg.Attributes.width "50px"
@@ -323,20 +344,48 @@ selectors address ( current, hovered ) =
 addProjectForm : Signal.Address Action -> Html
 addProjectForm address =
     div
-        []
-        [ input [ on "input" targetValue (Signal.message address << UpdatePartialProject "title") ] []
+        [ style
+            [ "position" => "fixed"
+            , "top" => "30%"
+            , "right" => "100px"
+            , "width" => "150px"
+            , "display" => "inline-block"
+            ]
+        ]
+        [ h5 [ style [ "width" => "150px" ] ] [ text "Add New Project" ]
+        , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "title") ] []
         , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "subtitle") ] []
         , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "date") ] []
         , select
             [ on "change" targetValue (Signal.message address << UpdatePartialProject "category") ]
-            [ option [] [ text "Interface" ]
+            [ option [] [ text "--" ]
+            , option [] [ text "Interface" ]
             , option [] [ text "UX" ]
             , option [] [ text "Graphic" ]
             , option [] [ text "Photograph" ]
             ]
         , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "width") ] []
         , input [ on "input" targetValue (Signal.message address << UpdatePartialProject "height") ] []
-        , button [ onClick address SubmitNewProject ] [ text "Add" ]
+        , h5
+            [ onClick address SubmitNewProject
+            , style
+                [ "width" => "40px"
+                , "display" => "inline-block"
+                , "cursor" => "pointer"
+                ]
+            ]
+            [ text "Add" ]
+        , h5
+            [ onClick address CloseMenu
+            , style
+                [ "width" => "40px"
+                , "display" => "inline-block"
+                , "position" => "absolute"
+                , "right" => "0px"
+                , "cursor" => "pointer"
+                ]
+            ]
+            [ text "Close" ]
         ]
 
 
