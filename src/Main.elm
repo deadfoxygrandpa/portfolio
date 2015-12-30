@@ -282,7 +282,18 @@ hamburger address =
                 ]
             , onClick address ToggleMenu
             ]
-            [ Svg.svg
+            [ div
+                [ style
+                    [ "position" => "absolute"
+                    , "top" => "0px"
+                    , "left" => "0px"
+                    , "width" => "50px"
+                    , "height" => "50px"
+                    , "zIndex" => "999"
+                    ]
+                ]
+                []
+            , Svg.svg
                 [ Svg.Attributes.width "50px"
                 , Svg.Attributes.height "50px"
                 ]
