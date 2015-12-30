@@ -3,6 +3,7 @@ module Main (..) where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Lazy exposing (..)
 import Effects exposing (..)
 import Svg
 import Svg.Attributes
@@ -181,7 +182,7 @@ update action model =
             in
                 case newProject of
                     Just project ->
-                        update (AddProject project) { model | pendingProject = emptyPartialProject }
+                        update (AddProject project) model
 
                     Nothing ->
                         ( model, none )
@@ -201,8 +202,8 @@ view address model =
         [ logo
         , hamburger
         , title'
-        , selectors address model
-        , projects address model
+        , lazy2 selectors address ( model.current, model.hovered )
+        , lazy2 projects address ( model.current, model.projects )
         , addProjectForm address
         ]
 
@@ -282,19 +283,19 @@ title' =
         [ text "PROJECTS" ]
 
 
-selectors : Signal.Address Action -> Model -> Html
-selectors address model =
+selectors : Signal.Address Action -> ( Category, Maybe Category ) -> Html
+selectors address ( current, hovered ) =
     let
         styler : Category -> Html
         styler category =
             h2
-                [ classList [ "selected" => (category == model.current) ]
+                [ classList [ "selected" => (category == current) ]
                 , style
                     [ "display" => "inherit"
                     , "padding" => "15px"
                     , "cursor" => "pointer"
                     , "backgroundColor"
-                        => if model.hovered == (Just category) then
+                        => if hovered == (Just category) then
                             "#ffffff"
                            else
                             "inherit"
@@ -365,8 +366,8 @@ emptyPartialProject =
     PartialProject Nothing Nothing Nothing Nothing Nothing Nothing
 
 
-projects : Signal.Address Action -> Model -> Html
-projects address model =
+projects : Signal.Address Action -> ( Category, List ( ID, Project ) ) -> Html
+projects address ( current, projectList ) =
     div
         [ style
             [ "position" => "relative"
@@ -375,8 +376,8 @@ projects address model =
         <| List.map
             (viewProject address)
         <| List.filter
-            (\( _, project ) -> project.category == model.current || model.current == All)
-            model.projects
+            (\( _, project ) -> project.category == current || current == All)
+            projectList
 
 
 viewProject : Signal.Address Action -> ( ID, Project ) -> Html
