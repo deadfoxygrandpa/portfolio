@@ -91,57 +91,61 @@ update action model =
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-    Html.div
-        [ Html.Attributes.class "menu"
-        , Html.Attributes.style
-            [ "position" => "fixed"
-            , "top" => "0px"
-            , "left" => "0px"
-            , "width" => "100%"
-            , "height" => "100%"
-            , "backgroundColor" => "rgba(0, 0, 0, 0.8)"
-            , "zIndex" => "997"
-            ]
-        ]
-        [ Html.div
-            [ Html.Attributes.style
+    let
+        makeLink heading string ref =
+            heading [] [ Html.a [ Html.Attributes.href ref ] [ text string ] ]
+    in
+        Html.div
+            [ Html.Attributes.class "menu"
+            , Html.Attributes.style
                 [ "position" => "fixed"
-                , "top" => "50%"
-                , "left" => "50%"
-                , "transform" => "translate(-50%, -60%)"
+                , "top" => "0px"
+                , "left" => "0px"
+                , "width" => "100%"
+                , "height" => "100%"
+                , "backgroundColor" => "rgba(0, 0, 0, 0.8)"
+                , "zIndex" => "997"
                 ]
             ]
-            [ Html.h1 [] [ text "HOME" ]
-            , Html.h1 [ Html.Attributes.id "current" ] [ text "PROJECTS" ]
-            , Html.h1 [] [ text "ABOUT ME" ]
-            , Html.h1 [] [ text "CONTACT" ]
-            ]
-        , Html.div
-            [ style
-                [ "position" => "fixed"
-                , "bottom" => "3em"
-                , "left" => "50%"
-                , "transform" => "translateX(-50%)"
-                ]
-            ]
-            [ Html.h2
-                []
-                [ text "FOLLOW ME" ]
-            , Html.div
+            [ Html.div
                 [ Html.Attributes.style
-                    [ "display" => "inline-block"
+                    [ "position" => "fixed"
+                    , "top" => "50%"
+                    , "left" => "50%"
+                    , "transform" => "translate(-50%, -60%)"
                     ]
                 ]
-                [ Html.h2 [] [ text "Facebook" ]
-                , Html.h2 [] [ text "|" ]
-                , Html.h2 [] [ text "Sina Weibo" ]
-                , Html.h2 [] [ text "|" ]
-                , Html.h2 [] [ text "Instagram" ]
-                , Html.h2 [] [ text "|" ]
-                , Html.h2 [] [ text "Behance" ]
+                [ makeLink Html.h1 "HOME" "#home"
+                , makeLink Html.h1 "PROJECTS" "#projects"
+                , makeLink Html.h1 "ABOUT ME" "#about"
+                , makeLink Html.h1 "CONTACT" "#contact"
+                ]
+            , Html.div
+                [ style
+                    [ "position" => "fixed"
+                    , "bottom" => "3em"
+                    , "left" => "50%"
+                    , "transform" => "translateX(-50%)"
+                    ]
+                ]
+                [ Html.h2
+                    []
+                    [ text "FOLLOW ME" ]
+                , Html.div
+                    [ Html.Attributes.style
+                        [ "display" => "inline-block"
+                        ]
+                    ]
+                    [ makeLink Html.h2 "Facebook" "#facebook"
+                    , Html.h2 [] [ text "|" ]
+                    , makeLink Html.h2 "Sina Weibo" "#weibo"
+                    , Html.h2 [] [ text "|" ]
+                    , makeLink Html.h2 "Instagram" "#instagram"
+                    , Html.h2 [] [ text "|" ]
+                    , makeLink Html.h2 "Behance" "#behance"
+                    ]
                 ]
             ]
-        ]
 
 
 

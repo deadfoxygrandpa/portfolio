@@ -178,12 +178,14 @@ logo : Html
 logo =
     div
         [ style [ "position" => "absolute" ] ]
-        [ div
+        [ Html.a
             [ style
                 [ "position" => "absolute"
                 , "top" => "46px"
                 , "left" => "51px"
+                , "zIndex" => "997"
                 ]
+            , Html.Attributes.href "#home"
             ]
             [ Svg.svg
                 [ Svg.Attributes.width "80px"
@@ -198,19 +200,6 @@ logo =
                     60
                 ]
             ]
-          --, div
-          --    [ style
-          --        [ "position" => "absolute"
-          --        , "top" => "55.8px"
-          --        , "left" => "94.6px"
-          --        ]
-          --    ]
-          --    [ Svg.svg
-          --        [ Svg.Attributes.width "50px"
-          --        , Svg.Attributes.height "50px"
-          --        ]
-          --        [ Material.Icons.Social.public (Color.rgb 80 227 194) 50 ]
-          --    ]
         ]
 
 
