@@ -157,7 +157,7 @@ view address model =
             ]
         ]
         <| [ logo
-           , lazy hamburger address
+           , lazy2 hamburger address model.menuOpen
            , title'
            , lazy2 selectors address ( model.current, model.hovered )
            , lazy2 projects address ( model.current, model.projects )
@@ -206,41 +206,49 @@ logo =
         ]
 
 
-hamburger : Signal.Address Action -> Html
-hamburger address =
-    div
-        [ style
-            [ "position" => "relative"
-            , "width" => "100%"
-            ]
-        ]
-        [ div
+hamburger : Signal.Address Action -> Bool -> Html
+hamburger address open =
+    let
+        icon =
+            if open then
+                Material.Icons.Navigation.close (Color.rgb 255 255 255)
+            else
+                Material.Icons.Navigation.menu (Color.rgb 74 74 74)
+    in
+        div
             [ style
-                [ "position" => "absolute"
-                , "top" => "35px"
-                , "right" => "35px"
-                , "cursor" => "pointer"
+                [ "position" => "relative"
+                , "width" => "100%"
                 ]
-            , onClick address ToggleMenu
             ]
             [ div
                 [ style
                     [ "position" => "absolute"
-                    , "top" => "0px"
-                    , "left" => "0px"
-                    , "width" => "50px"
-                    , "height" => "50px"
-                    , "zIndex" => "999"
+                    , "top" => "35px"
+                    , "right" => "35px"
+                    , "cursor" => "pointer"
+                    , "zIndex" => "998"
                     ]
+                , onClick address ToggleMenu
                 ]
-                []
-            , Svg.svg
-                [ Svg.Attributes.width "50px"
-                , Svg.Attributes.height "50px"
+                [ div
+                    [ style
+                        [ "position" => "absolute"
+                        , "top" => "0px"
+                        , "left" => "0px"
+                        , "width" => "50px"
+                        , "height" => "50px"
+                        , "zIndex" => "999"
+                        ]
+                    ]
+                    []
+                , Svg.svg
+                    [ Svg.Attributes.width "50px"
+                    , Svg.Attributes.height "50px"
+                    ]
+                    [ icon 50 ]
                 ]
-                [ Material.Icons.Navigation.menu (Color.rgb 74 74 74) 50 ]
             ]
-        ]
 
 
 title' : Html

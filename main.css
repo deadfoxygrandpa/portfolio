@@ -26,7 +26,29 @@ h4 {
   line-height: 15px;
 }
 
-.selected {
+h2.selected {
   color: #50e3c2;
   font-weight: 900;
+}
+
+#current {
+  color: #50e3c2;
+}
+
+.menu h1 {
+  color: #ffffff;
+  font-weight: 200;
+  text-align: center;
+}
+
+.menu h2 {
+  color: #ffffff;
+  font-weight: 400;
+  font-size: 1.25em;
+  display: inherit;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  text-align: center;
 }

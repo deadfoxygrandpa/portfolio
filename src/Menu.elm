@@ -91,47 +91,101 @@ update action model =
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-    div
-        [ style
+    Html.div
+        [ Html.Attributes.class "menu"
+        , Html.Attributes.style
             [ "position" => "fixed"
-            , "top" => "200px"
-            , "right" => "100px"
-            , "width" => "150px"
-            , "display" => "inline-block"
+            , "top" => "0px"
+            , "left" => "0px"
+            , "width" => "100%"
+            , "height" => "100%"
+            , "backgroundColor" => "rgba(0, 0, 0, 0.8)"
+            , "zIndex" => "997"
             ]
         ]
-        [ h5 [ style [ "width" => "150px" ] ] [ text "Add New Project" ]
-        , input [ on "input" targetValue (Signal.message address << Update "title") ] []
-        , input [ on "input" targetValue (Signal.message address << Update "subtitle") ] []
-        , input [ on "input" targetValue (Signal.message address << Update "date") ] []
-        , select
-            [ on "change" targetValue (Signal.message address << Update "category") ]
-            [ option [] [ text "--" ]
-            , option [] [ text "Interface" ]
-            , option [] [ text "UX" ]
-            , option [] [ text "Graphic" ]
-            , option [] [ text "Photograph" ]
-            ]
-        , input [ on "input" targetValue (Signal.message address << Update "width") ] []
-        , input [ on "input" targetValue (Signal.message address << Update "height") ] []
-        , h5
-            [ onClick address Submit
-            , style
-                [ "width" => "40px"
-                , "display" => "inline-block"
-                , "cursor" => "pointer"
+        [ Html.div
+            [ Html.Attributes.style
+                [ "position" => "fixed"
+                , "top" => "50%"
+                , "left" => "50%"
+                , "transform" => "translate(-50%, -60%)"
                 ]
             ]
-            [ text "Add" ]
-        , h5
-            [ onClick address Close
-            , style
-                [ "width" => "40px"
-                , "display" => "inline-block"
-                , "position" => "absolute"
-                , "right" => "0px"
-                , "cursor" => "pointer"
+            [ Html.h1 [] [ text "HOME" ]
+            , Html.h1 [ Html.Attributes.id "current" ] [ text "PROJECTS" ]
+            , Html.h1 [] [ text "ABOUT ME" ]
+            , Html.h1 [] [ text "CONTACT" ]
+            ]
+        , Html.div
+            [ style
+                [ "position" => "fixed"
+                , "bottom" => "3em"
+                , "left" => "50%"
+                , "transform" => "translateX(-50%)"
                 ]
             ]
-            [ text "Close" ]
+            [ Html.h2
+                []
+                [ text "FOLLOW ME" ]
+            , Html.div
+                [ Html.Attributes.style
+                    [ "display" => "inline-block"
+                    ]
+                ]
+                [ Html.h2 [] [ text "Facebook" ]
+                , Html.h2 [] [ text "|" ]
+                , Html.h2 [] [ text "Sina Weibo" ]
+                , Html.h2 [] [ text "|" ]
+                , Html.h2 [] [ text "Instagram" ]
+                , Html.h2 [] [ text "|" ]
+                , Html.h2 [] [ text "Behance" ]
+                ]
+            ]
         ]
+
+
+
+--div
+--    [ style
+--        [ "position" => "fixed"
+--        , "top" => "200px"
+--        , "right" => "100px"
+--        , "width" => "150px"
+--        , "display" => "inline-block"
+--        ]
+--    ]
+--    [ h5 [ style [ "width" => "150px" ] ] [ text "Add New Project" ]
+--    , input [ on "input" targetValue (Signal.message address << Update "title") ] []
+--    , input [ on "input" targetValue (Signal.message address << Update "subtitle") ] []
+--    , input [ on "input" targetValue (Signal.message address << Update "date") ] []
+--    , select
+--        [ on "change" targetValue (Signal.message address << Update "category") ]
+--        [ option [] [ text "--" ]
+--        , option [] [ text "Interface" ]
+--        , option [] [ text "UX" ]
+--        , option [] [ text "Graphic" ]
+--        , option [] [ text "Photograph" ]
+--        ]
+--    , input [ on "input" targetValue (Signal.message address << Update "width") ] []
+--    , input [ on "input" targetValue (Signal.message address << Update "height") ] []
+--    , h5
+--        [ onClick address Submit
+--        , style
+--            [ "width" => "40px"
+--            , "display" => "inline-block"
+--            , "cursor" => "pointer"
+--            ]
+--        ]
+--        [ text "Add" ]
+--    , h5
+--        [ onClick address Close
+--        , style
+--            [ "width" => "40px"
+--            , "display" => "inline-block"
+--            , "position" => "absolute"
+--            , "right" => "0px"
+--            , "cursor" => "pointer"
+--            ]
+--        ]
+--        [ text "Close" ]
+--    ]
