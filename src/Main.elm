@@ -15,6 +15,7 @@ import String
 import Result
 import StartApp
 import Transit
+import TransitStyle
 import Menu
 import SvgIcon
 
@@ -141,10 +142,14 @@ update action rootModel =
                 ( { rootModel | page = { model | menuOpen = False } }, none )
 
             ToggleMenu ->
-                if model.menuOpen then
-                    update CloseMenu rootModel
-                else
-                    update OpenMenu rootModel
+                let
+                    timeline =
+                        if model.menuOpen then
+                            Transit.timeline 100 CloseMenu 200
+                        else
+                            Transit.timeline 100 OpenMenu 500
+                in
+                    Transit.init TransitAction timeline rootModel
 
             MenuAction menuAction ->
                 let
@@ -184,11 +189,12 @@ view address rootModel =
                , title'
                , lazy2 selectors address ( model.current, model.hovered )
                , lazy2 projects address ( model.current, model.projects )
+               , div [ style (TransitStyle.fade rootModel.transition) ]
+                    <| if model.menuOpen then
+                        [ Menu.view (Signal.forwardTo address MenuAction) model.menu ]
+                       else
+                        []
                ]
-            ++ if model.menuOpen then
-                [ Menu.view (Signal.forwardTo address MenuAction) model.menu ]
-               else
-                []
 
 
 (=>) : a -> b -> ( a, b )
@@ -205,7 +211,6 @@ logo =
                 [ "position" => "absolute"
                 , "top" => "46px"
                 , "left" => "51px"
-                , "zIndex" => "997"
                 ]
             , Html.Attributes.href "#home"
             ]
