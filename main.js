@@ -13584,11 +13584,12 @@ Elm.Menu.make = function (_elm) {
       return {ctor: "_Tuple2",_0: a,_1: b};
    });
    var view = F2(function (address,model) {
-      var makeLink = F3(function (heading,string,ref) {
+      var makeLink = F4(function (heading,string,ref,target) {
          return A2(heading,
          _U.list([]),
          _U.list([A2($Html.a,
-         _U.list([$Html$Attributes.href(ref)]),
+         _U.list([$Html$Attributes.href(ref)
+                 ,$Html$Attributes.target(target)]),
          _U.list([$Html.text(string)]))]));
       });
       return A2($Html.div,
@@ -13609,10 +13610,10 @@ Elm.Menu.make = function (_elm) {
                                                       ,A2(_op["=>"],"top","50%")
                                                       ,A2(_op["=>"],"left","50%")
                                                       ,A2(_op["=>"],"transform","translate(-50%, -60%)")]))]),
-              _U.list([A3(makeLink,$Html.h1,"HOME","#home")
-                      ,A3(makeLink,$Html.h1,"PROJECTS","#projects")
-                      ,A3(makeLink,$Html.h1,"ABOUT ME","#about")
-                      ,A3(makeLink,$Html.h1,"CONTACT","#contact")]))
+              _U.list([A4(makeLink,$Html.h1,"HOME","#home","")
+                      ,A4(makeLink,$Html.h1,"PROJECTS","#projects","")
+                      ,A4(makeLink,$Html.h1,"ABOUT ME","#about","")
+                      ,A4(makeLink,$Html.h1,"CONTACT","#contact","")]))
               ,A2($Html.div,
               _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                                       "position",
@@ -13627,25 +13628,29 @@ Elm.Menu.make = function (_elm) {
                       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                       "display",
                       "inline-block")]))]),
-                      _U.list([A3(makeLink,
+                      _U.list([A4(makeLink,
                               $Html.h2,
                               "Facebook",
-                              "https://www.facebook.com/profile.php?id=100002934303779")
+                              "https://www.facebook.com/profile.php?id=100002934303779",
+                              "_blank")
                               ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
-                              ,A3(makeLink,
+                              ,A4(makeLink,
                               $Html.h2,
                               "Sina Weibo",
-                              "http://www.weibo.com/u/1829414713?wvr=5&wvr=5&lf=reg")
+                              "http://www.weibo.com/u/1829414713?wvr=5&wvr=5&lf=reg",
+                              "_blank")
                               ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
-                              ,A3(makeLink,
+                              ,A4(makeLink,
                               $Html.h2,
                               "Instagram",
-                              "https://www.instagram.com/gigiguo80/")
+                              "https://www.instagram.com/gigiguo80/",
+                              "_blank")
                               ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
-                              ,A3(makeLink,
+                              ,A4(makeLink,
                               $Html.h2,
                               "Behance",
-                              "https://www.behance.net/GigiGUO")]))]))]));
+                              "https://www.behance.net/GigiGUO",
+                              "_blank")]))]))]));
    });
    var PartialProject = F6(function (a,b,c,d,e,f) {
       return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
