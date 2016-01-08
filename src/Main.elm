@@ -14,6 +14,7 @@ import Color
 import String
 import Result
 import StartApp
+import Transit
 import Menu
 import SvgIcon
 
@@ -47,6 +48,10 @@ type Category
 
 
 type alias Model =
+    Transit.WithTransition { page : Page }
+
+
+type alias Page =
     { current : Category
     , hovered : Maybe Category
     , projects : List ( ID, Project )
@@ -62,18 +67,22 @@ type alias ID =
 
 model : Model
 model =
-    Model
-        All
-        Nothing
-        [ ( 0, Project "JBL CONNECT" "APP" "JULY,2015" UX 541.4 412 )
-        , ( 1, Project "GIGI" "WEBSITE" "DEC,2015" Interface 776 412 )
-        , ( 2, Project "BREATH" "POSTER" "DEC,2011" Graphic 310 412 )
-        , ( 3, Project "FUTURE" "POSTER" "DEC,2013" Graphic 310 412 )
-        , ( 4, Project "HORIZON" "UX" "JULY,2014" Photograph 670 130 )
-        ]
-        5
-        Menu.init
-        False
+    let
+        page =
+            Page
+                All
+                Nothing
+                [ ( 0, Project "JBL CONNECT" "APP" "JULY,2015" UX 541.4 412 )
+                , ( 1, Project "GIGI" "WEBSITE" "DEC,2015" Interface 776 412 )
+                , ( 2, Project "BREATH" "POSTER" "DEC,2011" Graphic 310 412 )
+                , ( 3, Project "FUTURE" "POSTER" "DEC,2013" Graphic 310 412 )
+                , ( 4, Project "HORIZON" "UX" "JULY,2014" Photograph 670 130 )
+                ]
+                5
+                Menu.init
+                False
+    in
+        { page = page, transition = Transit.initial }
 
 
 type Action
@@ -86,87 +95,100 @@ type Action
     | CloseMenu
     | ToggleMenu
     | MenuAction Menu.Action
+    | TransitAction (Transit.Action Action)
 
 
-update action model =
-    case action of
-        Click category ->
-            ( { model | current = category, hovered = Nothing }, none )
+update action rootModel =
+    let
+        model = rootModel.page
+    in
+        case action of
+            Click category ->
+                ( { rootModel | page = { model | current = category, hovered = Nothing } }, none )
 
-        Hover category ->
-            ( { model | hovered = category }, none )
+            Hover category ->
+                ( { rootModel | page = { model | hovered = category } }, none )
 
-        AddProject project ->
-            ( { model
-                | projects = ( model.nextID, project ) :: model.projects
-                , nextID = model.nextID + 1
-              }
-            , none
-            )
+            AddProject project ->
+                ( { rootModel
+                    | page =
+                        { model
+                            | projects = ( model.nextID, project ) :: model.projects
+                            , nextID = model.nextID + 1
+                        }
+                  }
+                , none
+                )
 
-        RemoveProject id ->
-            ( { model | projects = List.filter (\( pid, _ ) -> pid /= id) model.projects }, none )
+            RemoveProject id ->
+                ( { rootModel | page = { model | projects = List.filter (\( pid, _ ) -> pid /= id) model.projects } }, none )
 
-        SubmitNewProject ->
-            let
-                newProject = convertPartialProject model.menu.project
-            in
-                case newProject of
-                    Just project ->
-                        update (AddProject project) model
+            SubmitNewProject ->
+                let
+                    newProject = convertPartialProject model.menu.project
+                in
+                    case newProject of
+                        Just project ->
+                            update (AddProject project) rootModel
 
-                    Nothing ->
-                        ( model, none )
+                        Nothing ->
+                            ( rootModel, none )
 
-        OpenMenu ->
-            ( { model | menuOpen = True }, none )
+            OpenMenu ->
+                ( { rootModel | page = { model | menuOpen = True } }, none )
 
-        CloseMenu ->
-            ( { model | menuOpen = False }, none )
+            CloseMenu ->
+                ( { rootModel | page = { model | menuOpen = False } }, none )
 
-        ToggleMenu ->
-            if model.menuOpen then
-                update CloseMenu model
-            else
-                update OpenMenu model
+            ToggleMenu ->
+                if model.menuOpen then
+                    update CloseMenu rootModel
+                else
+                    update OpenMenu rootModel
 
-        MenuAction menuAction ->
-            let
-                ( newMenu, effect ) = Menu.update menuAction model.menu
+            MenuAction menuAction ->
+                let
+                    ( newMenu, effect ) = Menu.update menuAction model.menu
 
-                updated = { model | menu = newMenu }
-            in
-                case menuAction of
-                    Menu.Close ->
-                        update CloseMenu updated
+                    updated = { rootModel | page = { model | menu = newMenu } }
+                in
+                    case menuAction of
+                        Menu.Close ->
+                            update CloseMenu updated
 
-                    Menu.Submit ->
-                        update SubmitNewProject updated
+                        Menu.Submit ->
+                            update SubmitNewProject updated
 
-                    _ ->
-                        ( updated, none )
+                        _ ->
+                            ( updated, none )
+
+            TransitAction a ->
+                Transit.update TransitAction a rootModel
 
 
 view : Signal.Address Action -> Model -> Html
-view address model =
-    div
-        [ style
-            [ "color" => "#50e3c2"
-            , "fontFamily" => "Raleway,sans-serif"
-            , "maxWidth" => "75em"
-            , "margin" => "auto"
+view address rootModel =
+    let
+        model = rootModel.page
+    in
+        div
+            [ style
+                [ "color" => "#50e3c2"
+                , "fontFamily" => "Raleway,sans-serif"
+                , "maxWidth" => "75em"
+                , "margin" => "auto"
+                ]
             ]
-        ]
-        <| [ logo
-           , lazy2 hamburger address model.menuOpen
-           , title'
-           , lazy2 selectors address ( model.current, model.hovered )
-           , lazy2 projects address ( model.current, model.projects )
-           ]
-        ++ if model.menuOpen then
-            [ Menu.view (Signal.forwardTo address MenuAction) model.menu ]
-           else
-            []
+            <| [ logo
+               , lazy2 hamburger address model.menuOpen
+               , title'
+               , lazy2 selectors address ( model.current, model.hovered )
+               , lazy2 projects address ( model.current, model.projects )
+               ]
+            ++ if model.menuOpen then
+                [ Menu.view (Signal.forwardTo address MenuAction) model.menu ]
+               else
+                []
 
 
 (=>) : a -> b -> ( a, b )
