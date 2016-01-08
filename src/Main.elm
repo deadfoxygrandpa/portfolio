@@ -18,11 +18,12 @@ import Transit
 import TransitStyle
 import Menu
 import SvgIcon
+import Scroll
 
 
 app : StartApp.App Model
 app =
-    StartApp.start { init = ( model, none ), view = view, update = update, inputs = [] }
+    StartApp.start { init = ( model, none ), view = view, update = update, inputs = [ Signal.map Offset Scroll.yOffset ] }
 
 
 main : Signal Html
@@ -59,6 +60,7 @@ type alias Page =
     , nextID : Int
     , menu : Menu.Model
     , menuOpen : Bool
+    , scrollOffset : Int
     }
 
 
@@ -82,6 +84,7 @@ model =
                 5
                 Menu.init
                 False
+                0
     in
         { page = page, transition = Transit.initial }
 
@@ -97,6 +100,7 @@ type Action
     | ToggleMenu
     | MenuAction Menu.Action
     | TransitAction (Transit.Action Action)
+    | Offset Int
 
 
 update action rootModel =
@@ -170,6 +174,9 @@ update action rootModel =
             TransitAction a ->
                 Transit.update TransitAction a rootModel
 
+            Offset offset ->
+                ( { rootModel | page = { model | scrollOffset = offset } }, none )
+
 
 view : Signal.Address Action -> Model -> Html
 view address rootModel =
@@ -185,7 +192,7 @@ view address rootModel =
                 ]
             ]
             <| [ logo
-               , lazy2 hamburger address model.menuOpen
+               , lazy2 hamburger address ( model.menuOpen, model.scrollOffset )
                , title'
                , lazy2 selectors address ( model.current, model.hovered )
                , lazy2 projects address ( model.current, model.projects )
@@ -230,8 +237,8 @@ logo =
         ]
 
 
-hamburger : Signal.Address Action -> Bool -> Html
-hamburger address open =
+hamburger : Signal.Address Action -> ( Bool, Int ) -> Html
+hamburger address ( open, yOffset ) =
     let
         icon =
             if open then
@@ -252,6 +259,7 @@ hamburger address open =
                     , "right" => "35px"
                     , "cursor" => "pointer"
                     , "zIndex" => "998"
+                    , "transform" => ("translateY(" ++ toString yOffset ++ "px)")
                     ]
                 , onClick address ToggleMenu
                 ]
