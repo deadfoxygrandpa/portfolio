@@ -13,11 +13,13 @@ import Task
 import Color
 import String
 import Result
+import Random
 import StartApp
 import Transit
 import TransitStyle
 import Menu
 import SvgIcon
+import ColorScheme
 import Scroll
 
 
@@ -382,25 +384,31 @@ convertPartialProject project =
 
 projects : Signal.Address Action -> ( Category, List ( ID, Project ) ) -> Html
 projects address ( current, projectList ) =
-    div
-        [ style
-            [ "position" => "relative"
+    let
+        seed = Random.initialSeed 12014591
+
+        ( colors, _ ) = Random.generate (Random.list 100 ColorScheme.randomColor) seed
+    in
+        div
+            [ style
+                [ "position" => "relative"
+                ]
             ]
-        ]
-        <| List.map
-            (viewProject address)
-        <| List.filter
-            (\( _, project ) -> project.category == current || current == All)
-            projectList
+            <| List.map2
+                (viewProject address)
+                colors
+            <| List.filter
+                (\( _, project ) -> project.category == current || current == All)
+                projectList
 
 
-viewProject : Signal.Address Action -> ( ID, Project ) -> Html
-viewProject address ( id, project ) =
+viewProject : Signal.Address Action -> ColorScheme.Color -> ( ID, Project ) -> Html
+viewProject address color ( id, project ) =
     div
         [ style
             [ "width" => (toString project.w ++ "px")
             , "height" => (toString project.h ++ "px")
-            , "backgroundColor" => "#ffffff"
+            , "backgroundColor" => color.hex
             , "color" => "#333333"
             , "fontFamily" => "monospace"
             , "position" => "relative"
