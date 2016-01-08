@@ -92,8 +92,8 @@ update action model =
 view : Signal.Address Action -> Model -> Html
 view address model =
     let
-        makeLink heading string ref =
-            heading [] [ Html.a [ Html.Attributes.href ref ] [ text string ] ]
+        makeLink heading string ref target =
+            heading [] [ Html.a [ Html.Attributes.href ref, Html.Attributes.target target ] [ text string ] ]
     in
         Html.div
             [ Html.Attributes.class "menu"
@@ -115,10 +115,10 @@ view address model =
                     , "transform" => "translate(-50%, -60%)"
                     ]
                 ]
-                [ makeLink Html.h1 "HOME" "#home"
-                , makeLink Html.h1 "PROJECTS" "#projects"
-                , makeLink Html.h1 "ABOUT ME" "#about"
-                , makeLink Html.h1 "CONTACT" "#contact"
+                [ makeLink Html.h1 "HOME" "#home" ""
+                , makeLink Html.h1 "PROJECTS" "#projects" ""
+                , makeLink Html.h1 "ABOUT ME" "#about" ""
+                , makeLink Html.h1 "CONTACT" "#contact" ""
                 ]
             , Html.div
                 [ style
@@ -136,13 +136,13 @@ view address model =
                         [ "display" => "inline-block"
                         ]
                     ]
-                    [ makeLink Html.h2 "Facebook" "https://www.facebook.com/profile.php?id=100002934303779"
+                    [ makeLink Html.h2 "Facebook" "https://www.facebook.com/profile.php?id=100002934303779" "_blank"
                     , Html.h2 [] [ text "|" ]
-                    , makeLink Html.h2 "Sina Weibo" "http://www.weibo.com/u/1829414713?wvr=5&wvr=5&lf=reg"
+                    , makeLink Html.h2 "Sina Weibo" "http://www.weibo.com/u/1829414713?wvr=5&wvr=5&lf=reg" "_blank"
                     , Html.h2 [] [ text "|" ]
-                    , makeLink Html.h2 "Instagram" "https://www.instagram.com/gigiguo80/"
+                    , makeLink Html.h2 "Instagram" "https://www.instagram.com/gigiguo80/" "_blank"
                     , Html.h2 [] [ text "|" ]
-                    , makeLink Html.h2 "Behance" "https://www.behance.net/GigiGUO"
+                    , makeLink Html.h2 "Behance" "https://www.behance.net/GigiGUO" "_blank"
                     ]
                 ]
             ]
