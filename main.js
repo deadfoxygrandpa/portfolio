@@ -13627,13 +13627,25 @@ Elm.Menu.make = function (_elm) {
                       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                       "display",
                       "inline-block")]))]),
-                      _U.list([A3(makeLink,$Html.h2,"Facebook","#facebook")
+                      _U.list([A3(makeLink,
+                              $Html.h2,
+                              "Facebook",
+                              "https://www.facebook.com/profile.php?id=100002934303779")
                               ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
-                              ,A3(makeLink,$Html.h2,"Sina Weibo","#weibo")
+                              ,A3(makeLink,
+                              $Html.h2,
+                              "Sina Weibo",
+                              "http://www.weibo.com/u/1829414713?wvr=5&wvr=5&lf=reg")
                               ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
-                              ,A3(makeLink,$Html.h2,"Instagram","#instagram")
+                              ,A3(makeLink,
+                              $Html.h2,
+                              "Instagram",
+                              "https://www.instagram.com/gigiguo80/")
                               ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
-                              ,A3(makeLink,$Html.h2,"Behance","#behance")]))]))]));
+                              ,A3(makeLink,
+                              $Html.h2,
+                              "Behance",
+                              "https://www.behance.net/GigiGUO")]))]))]));
    });
    var PartialProject = F6(function (a,b,c,d,e,f) {
       return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
