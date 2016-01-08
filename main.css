@@ -1,15 +1,16 @@
 body {
-  background-color: #ffffff;
+  background-color: #f2f9fa;
 }
 
 h1 {
-  font-size: 3em;
+	font-size: 3em;
+  font-weight: 800;
 }
 
 h2 {
   font-size: 24px;
   color: #9b9b9b;
-  font-weight: normal;
+  font-weight: 200;
 }
 
 h3 {
@@ -26,7 +27,43 @@ h4 {
   line-height: 15px;
 }
 
-.selected {
+h2.selected {
   color: #50e3c2;
-  font-weight: 900;
+  font-weight: 400;
 }
+
+.menu h1 {
+  color: #ffffff;
+  font-weight: 200;
+  text-align: center;
+}
+
+.menu h2 {
+  color: #ffffff;
+  font-weight: 400;
+  font-size: 1.25em;
+  display: inherit;
+  padding-left: 1em;
+  padding-right: 1em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  text-align: center;
+}
+
+a {
+  transition: color 0.5s ease;
+}
+
+a:link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+a:visited {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #50e3c2;
+} 

@@ -6027,6 +6027,400 @@ Elm.Signal.make = function (_elm) {
                                ,forwardTo: forwardTo
                                ,Mailbox: Mailbox};
 };
+Elm.Native.Time = {};
+
+Elm.Native.Time.make = function(localRuntime)
+{
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Time = localRuntime.Native.Time || {};
+	if (localRuntime.Native.Time.values)
+	{
+		return localRuntime.Native.Time.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+
+
+	// FRAMES PER SECOND
+
+	function fpsWhen(desiredFPS, isOn)
+	{
+		var msPerFrame = 1000 / desiredFPS;
+		var ticker = NS.input('fps-' + desiredFPS, null);
+
+		function notifyTicker()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+
+		function firstArg(x, y)
+		{
+			return x;
+		}
+
+		// input fires either when isOn changes, or when ticker fires.
+		// Its value is a tuple with the current timestamp, and the state of isOn
+		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
+
+		var initialState = {
+			isOn: false,
+			time: localRuntime.timer.programStart,
+			delta: 0
+		};
+
+		var timeoutId;
+
+		function update(input, state)
+		{
+			var currentTime = input._0;
+			var isOn = input._1;
+			var wasOn = state.isOn;
+			var previousTime = state.time;
+
+			if (isOn)
+			{
+				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
+			}
+			else if (wasOn)
+			{
+				clearTimeout(timeoutId);
+			}
+
+			return {
+				isOn: isOn,
+				time: currentTime,
+				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
+			};
+		}
+
+		return A2(
+			NS.map,
+			function(state) { return state.delta; },
+			A3(NS.foldp, F2(update), update(input.value, initialState), input)
+		);
+	}
+
+
+	// EVERY
+
+	function every(t)
+	{
+		var ticker = NS.input('every-' + t, null);
+		function tellTime()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+		var clock = A2(NS.map, fst, NS.timestamp(ticker));
+		setInterval(tellTime, t);
+		return clock;
+	}
+
+
+	function fst(pair)
+	{
+		return pair._0;
+	}
+
+
+	function read(s)
+	{
+		var t = Date.parse(s);
+		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
+	}
+
+	return localRuntime.Native.Time.values = {
+		fpsWhen: F2(fpsWhen),
+		every: every,
+		toDate: function(t) { return new Date(t); },
+		read: read
+	};
+};
+
+Elm.Time = Elm.Time || {};
+Elm.Time.make = function (_elm) {
+   "use strict";
+   _elm.Time = _elm.Time || {};
+   if (_elm.Time.values) return _elm.Time.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Native$Signal = Elm.Native.Signal.make(_elm),
+   $Native$Time = Elm.Native.Time.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var delay = $Native$Signal.delay;
+   var since = F2(function (time,signal) {
+      var stop = A2($Signal.map,
+      $Basics.always(-1),
+      A2(delay,time,signal));
+      var start = A2($Signal.map,$Basics.always(1),signal);
+      var delaydiff = A3($Signal.foldp,
+      F2(function (x,y) {    return x + y;}),
+      0,
+      A2($Signal.merge,start,stop));
+      return A2($Signal.map,
+      F2(function (x,y) {    return !_U.eq(x,y);})(0),
+      delaydiff);
+   });
+   var timestamp = $Native$Signal.timestamp;
+   var every = $Native$Time.every;
+   var fpsWhen = $Native$Time.fpsWhen;
+   var fps = function (targetFrames) {
+      return A2(fpsWhen,targetFrames,$Signal.constant(true));
+   };
+   var inMilliseconds = function (t) {    return t;};
+   var millisecond = 1;
+   var second = 1000 * millisecond;
+   var minute = 60 * second;
+   var hour = 60 * minute;
+   var inHours = function (t) {    return t / hour;};
+   var inMinutes = function (t) {    return t / minute;};
+   var inSeconds = function (t) {    return t / second;};
+   return _elm.Time.values = {_op: _op
+                             ,millisecond: millisecond
+                             ,second: second
+                             ,minute: minute
+                             ,hour: hour
+                             ,inMilliseconds: inMilliseconds
+                             ,inSeconds: inSeconds
+                             ,inMinutes: inMinutes
+                             ,inHours: inHours
+                             ,fps: fps
+                             ,fpsWhen: fpsWhen
+                             ,every: every
+                             ,timestamp: timestamp
+                             ,delay: delay
+                             ,since: since};
+};
+Elm.Easing = Elm.Easing || {};
+Elm.Easing.make = function (_elm) {
+   "use strict";
+   _elm.Easing = _elm.Easing || {};
+   if (_elm.Easing.values) return _elm.Easing.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var cycle = F3(function (animation,d,t) {
+      return A2(animation,
+      1,
+      t / d - $Basics.toFloat($Basics.floor(t / d)));
+   });
+   var flip = F2(function (easing,time) {
+      return easing(1 - time);
+   });
+   var retour = F2(function (easing,time) {
+      return _U.cmp(time,0.5) < 0 ? easing(time * 2) : A2(flip,
+      easing,
+      (time - 0.5) * 2);
+   });
+   var invert = F2(function (easing,time) {
+      return 1 - easing(1 - time);
+   });
+   var inOut = F3(function (e1,e2,time) {
+      return _U.cmp(time,
+      0.5) < 0 ? e1(time * 2) / 2 : 0.5 + e2((time - 0.5) * 2) / 2;
+   });
+   var easeInElastic = function (time) {
+      var t$ = time - 1;
+      var p = 0.3;
+      var s = 7.5e-2;
+      return 0 - Math.pow(2,
+      10 * t$) * $Basics.sin((t$ - s) * (2 * $Basics.pi) / p);
+   };
+   var easeOutElastic = invert(easeInElastic);
+   var easeInOutElastic = A2(inOut,easeInElastic,easeOutElastic);
+   var easeOutBounce = function (time) {
+      var t4 = time - 2.65 / 2.75;
+      var t3 = time - 2.25 / 2.75;
+      var t2 = time - 1.5 / 2.75;
+      var a = 7.5625;
+      return _U.cmp(time,
+      1 / 2.75) < 0 ? a * time * time : _U.cmp(time,
+      2 / 2.75) < 0 ? a * t2 * t2 + 0.75 : _U.cmp(time,
+      2.5 / 2.75) < 0 ? a * t3 * t3 + 0.9375 : a * t4 * t4 + 0.984375;
+   };
+   var easeInBounce = invert(easeOutBounce);
+   var easeInOutBounce = A2(inOut,easeInBounce,easeOutBounce);
+   var easeInBack = function (time) {
+      return time * time * (2.70158 * time - 1.70158);
+   };
+   var easeOutBack = invert(easeInBack);
+   var easeInOutBack = A2(inOut,easeInBack,easeOutBack);
+   var easeOutCirc = function (time) {
+      return $Basics.sqrt(1 - Math.pow(time - 1,2));
+   };
+   var easeInCirc = invert(easeOutCirc);
+   var easeInOutCirc = A2(inOut,easeInCirc,easeOutCirc);
+   var easeInExpo = function (time) {
+      return Math.pow(2,10 * (time - 1));
+   };
+   var easeOutExpo = invert(easeInExpo);
+   var easeInOutExpo = A2(inOut,easeInExpo,easeOutExpo);
+   var easeOutSine = function (time) {
+      return $Basics.sin(time * ($Basics.pi / 2));
+   };
+   var easeInSine = invert(easeOutSine);
+   var easeInOutSine = A2(inOut,easeInSine,easeOutSine);
+   var easeInQuint = function (time) {
+      return Math.pow(time,5);
+   };
+   var easeOutQuint = invert(easeInQuint);
+   var easeInOutQuint = A2(inOut,easeInQuint,easeOutQuint);
+   var easeInQuart = function (time) {
+      return Math.pow(time,4);
+   };
+   var easeOutQuart = invert(easeInQuart);
+   var easeInOutQuart = A2(inOut,easeInQuart,easeOutQuart);
+   var easeInCubic = function (time) {
+      return Math.pow(time,3);
+   };
+   var easeOutCubic = invert(easeInCubic);
+   var easeInOutCubic = A2(inOut,easeInCubic,easeOutCubic);
+   var easeInQuad = function (time) {    return Math.pow(time,2);};
+   var easeOutQuad = invert(easeInQuad);
+   var easeInOutQuad = A2(inOut,easeInQuad,easeOutQuad);
+   var linear = $Basics.identity;
+   var pair = F4(function (interpolate,_p1,_p0,v) {
+      var _p2 = _p1;
+      var _p3 = _p0;
+      return {ctor: "_Tuple2"
+             ,_0: A3(interpolate,_p2._0,_p3._0,v)
+             ,_1: A3(interpolate,_p2._1,_p3._1,v)};
+   });
+   var $float = F3(function (from,to,v) {
+      return from + (to - from) * v;
+   });
+   var point2d = F3(function (from,to,v) {
+      return {x: A3($float,from.x,to.x,v)
+             ,y: A3($float,from.y,to.y,v)};
+   });
+   var point3d = F3(function (from,to,v) {
+      return {x: A3($float,from.x,to.x,v)
+             ,y: A3($float,from.y,to.y,v)
+             ,z: A3($float,from.z,to.z,v)};
+   });
+   var color = F3(function (from,to,v) {
+      var float$ = F3(function (from,to,v) {
+         return $Basics.round(A3($float,
+         $Basics.toFloat(from),
+         $Basics.toFloat(to),
+         v));
+      });
+      var _p4 = {ctor: "_Tuple2"
+                ,_0: $Color.toRgb(from)
+                ,_1: $Color.toRgb(to)};
+      var rgb1 = _p4._0;
+      var rgb2 = _p4._1;
+      var _p5 = {ctor: "_Tuple4"
+                ,_0: rgb1.red
+                ,_1: rgb1.green
+                ,_2: rgb1.blue
+                ,_3: rgb1.alpha};
+      var r1 = _p5._0;
+      var g1 = _p5._1;
+      var b1 = _p5._2;
+      var a1 = _p5._3;
+      var _p6 = {ctor: "_Tuple4"
+                ,_0: rgb2.red
+                ,_1: rgb2.green
+                ,_2: rgb2.blue
+                ,_3: rgb2.alpha};
+      var r2 = _p6._0;
+      var g2 = _p6._1;
+      var b2 = _p6._2;
+      var a2 = _p6._3;
+      return A4($Color.rgba,
+      A3(float$,r1,r2,v),
+      A3(float$,g1,g2,v),
+      A3(float$,b1,b2,v),
+      A3($float,a1,a2,v));
+   });
+   var bezier = F5(function (x1,y1,x2,y2,time) {
+      var casteljau = function (ps) {
+         casteljau: while (true) {
+            var _p7 = ps;
+            if (_p7.ctor === "::" && _p7._0.ctor === "_Tuple2" && _p7._1.ctor === "[]")
+            {
+                  return _p7._0._1;
+               } else {
+                  var _p8 = _p7;
+                  var _v3 = A3($List.map2,
+                  F2(function (x,y) {    return A4(pair,$float,x,y,time);}),
+                  _p8,
+                  A2($Maybe.withDefault,_U.list([]),$List.tail(_p8)));
+                  ps = _v3;
+                  continue casteljau;
+               }
+         }
+      };
+      return casteljau(_U.list([{ctor: "_Tuple2",_0: 0,_1: 0}
+                               ,{ctor: "_Tuple2",_0: x1,_1: y1}
+                               ,{ctor: "_Tuple2",_0: x2,_1: y2}
+                               ,{ctor: "_Tuple2",_0: 1,_1: 1}]));
+   });
+   var ease = F6(function (easing,
+   interpolation,
+   from,
+   to,
+   duration,
+   time) {
+      return A3(interpolation,
+      from,
+      to,
+      easing(A2($Basics.min,time / duration,1)));
+   });
+   return _elm.Easing.values = {_op: _op
+                               ,ease: ease
+                               ,$float: $float
+                               ,point2d: point2d
+                               ,point3d: point3d
+                               ,color: color
+                               ,pair: pair
+                               ,cycle: cycle
+                               ,invert: invert
+                               ,retour: retour
+                               ,inOut: inOut
+                               ,flip: flip
+                               ,bezier: bezier
+                               ,linear: linear
+                               ,easeInQuad: easeInQuad
+                               ,easeOutQuad: easeOutQuad
+                               ,easeInOutQuad: easeInOutQuad
+                               ,easeInCubic: easeInCubic
+                               ,easeOutCubic: easeOutCubic
+                               ,easeInOutCubic: easeInOutCubic
+                               ,easeInQuart: easeInQuart
+                               ,easeOutQuart: easeOutQuart
+                               ,easeInOutQuart: easeInOutQuart
+                               ,easeInQuint: easeInQuint
+                               ,easeOutQuint: easeOutQuint
+                               ,easeInOutQuint: easeInOutQuint
+                               ,easeInSine: easeInSine
+                               ,easeOutSine: easeOutSine
+                               ,easeInOutSine: easeInOutSine
+                               ,easeInExpo: easeInExpo
+                               ,easeOutExpo: easeOutExpo
+                               ,easeInOutExpo: easeInOutExpo
+                               ,easeInCirc: easeInCirc
+                               ,easeOutCirc: easeOutCirc
+                               ,easeInOutCirc: easeInOutCirc
+                               ,easeInBack: easeInBack
+                               ,easeOutBack: easeOutBack
+                               ,easeInOutBack: easeInOutBack
+                               ,easeInBounce: easeInBounce
+                               ,easeOutBounce: easeOutBounce
+                               ,easeInOutBounce: easeInOutBounce
+                               ,easeInElastic: easeInElastic
+                               ,easeOutElastic: easeOutElastic
+                               ,easeInOutElastic: easeInOutElastic};
+};
 Elm.Native.Json = {};
 
 Elm.Native.Json.make = function(localRuntime) {
@@ -11360,6 +11754,31 @@ Elm.Html.Events.make = function (_elm) {
                                     ,keyCode: keyCode
                                     ,Options: Options};
 };
+Elm.Html = Elm.Html || {};
+Elm.Html.Lazy = Elm.Html.Lazy || {};
+Elm.Html.Lazy.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Lazy = _elm.Html.Lazy || {};
+   if (_elm.Html.Lazy.values) return _elm.Html.Lazy.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var _op = {};
+   var lazy3 = $VirtualDom.lazy3;
+   var lazy2 = $VirtualDom.lazy2;
+   var lazy = $VirtualDom.lazy;
+   return _elm.Html.Lazy.values = {_op: _op
+                                  ,lazy: lazy
+                                  ,lazy2: lazy2
+                                  ,lazy3: lazy3};
+};
 Elm.Native.Effects = {};
 Elm.Native.Effects.make = function(localRuntime) {
 
@@ -11501,171 +11920,6 @@ Elm.Native.Effects.make = function(localRuntime) {
 
 };
 
-Elm.Native.Time = {};
-
-Elm.Native.Time.make = function(localRuntime)
-{
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Time = localRuntime.Native.Time || {};
-	if (localRuntime.Native.Time.values)
-	{
-		return localRuntime.Native.Time.values;
-	}
-
-	var NS = Elm.Native.Signal.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-
-
-	// FRAMES PER SECOND
-
-	function fpsWhen(desiredFPS, isOn)
-	{
-		var msPerFrame = 1000 / desiredFPS;
-		var ticker = NS.input('fps-' + desiredFPS, null);
-
-		function notifyTicker()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-
-		function firstArg(x, y)
-		{
-			return x;
-		}
-
-		// input fires either when isOn changes, or when ticker fires.
-		// Its value is a tuple with the current timestamp, and the state of isOn
-		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
-
-		var initialState = {
-			isOn: false,
-			time: localRuntime.timer.programStart,
-			delta: 0
-		};
-
-		var timeoutId;
-
-		function update(input, state)
-		{
-			var currentTime = input._0;
-			var isOn = input._1;
-			var wasOn = state.isOn;
-			var previousTime = state.time;
-
-			if (isOn)
-			{
-				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
-			}
-			else if (wasOn)
-			{
-				clearTimeout(timeoutId);
-			}
-
-			return {
-				isOn: isOn,
-				time: currentTime,
-				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
-			};
-		}
-
-		return A2(
-			NS.map,
-			function(state) { return state.delta; },
-			A3(NS.foldp, F2(update), update(input.value, initialState), input)
-		);
-	}
-
-
-	// EVERY
-
-	function every(t)
-	{
-		var ticker = NS.input('every-' + t, null);
-		function tellTime()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-		var clock = A2(NS.map, fst, NS.timestamp(ticker));
-		setInterval(tellTime, t);
-		return clock;
-	}
-
-
-	function fst(pair)
-	{
-		return pair._0;
-	}
-
-
-	function read(s)
-	{
-		var t = Date.parse(s);
-		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
-	}
-
-	return localRuntime.Native.Time.values = {
-		fpsWhen: F2(fpsWhen),
-		every: every,
-		toDate: function(t) { return new Date(t); },
-		read: read
-	};
-};
-
-Elm.Time = Elm.Time || {};
-Elm.Time.make = function (_elm) {
-   "use strict";
-   _elm.Time = _elm.Time || {};
-   if (_elm.Time.values) return _elm.Time.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Native$Signal = Elm.Native.Signal.make(_elm),
-   $Native$Time = Elm.Native.Time.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var delay = $Native$Signal.delay;
-   var since = F2(function (time,signal) {
-      var stop = A2($Signal.map,
-      $Basics.always(-1),
-      A2(delay,time,signal));
-      var start = A2($Signal.map,$Basics.always(1),signal);
-      var delaydiff = A3($Signal.foldp,
-      F2(function (x,y) {    return x + y;}),
-      0,
-      A2($Signal.merge,start,stop));
-      return A2($Signal.map,
-      F2(function (x,y) {    return !_U.eq(x,y);})(0),
-      delaydiff);
-   });
-   var timestamp = $Native$Signal.timestamp;
-   var every = $Native$Time.every;
-   var fpsWhen = $Native$Time.fpsWhen;
-   var fps = function (targetFrames) {
-      return A2(fpsWhen,targetFrames,$Signal.constant(true));
-   };
-   var inMilliseconds = function (t) {    return t;};
-   var millisecond = 1;
-   var second = 1000 * millisecond;
-   var minute = 60 * second;
-   var hour = 60 * minute;
-   var inHours = function (t) {    return t / hour;};
-   var inMinutes = function (t) {    return t / minute;};
-   var inSeconds = function (t) {    return t / second;};
-   return _elm.Time.values = {_op: _op
-                             ,millisecond: millisecond
-                             ,second: second
-                             ,minute: minute
-                             ,hour: hour
-                             ,inMilliseconds: inMilliseconds
-                             ,inSeconds: inSeconds
-                             ,inMinutes: inMinutes
-                             ,inHours: inHours
-                             ,fps: fps
-                             ,fpsWhen: fpsWhen
-                             ,every: every
-                             ,timestamp: timestamp
-                             ,delay: delay
-                             ,since: since};
-};
 Elm.Effects = Elm.Effects || {};
 Elm.Effects.make = function (_elm) {
    "use strict";
@@ -12747,6 +13001,787 @@ Elm.StartApp.make = function (_elm) {
                                  ,Config: Config
                                  ,App: App};
 };
+Elm.Animation = Elm.Animation || {};
+Elm.Animation.make = function (_elm) {
+   "use strict";
+   _elm.Animation = _elm.Animation || {};
+   if (_elm.Animation.values) return _elm.Animation.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var isScheduled = F2(function (t,_p0) {
+      var _p1 = _p0;
+      return _U.cmp(t,_p1._0.start + _p1._0.delay) < 1;
+   });
+   var getTo = function (_p2) {
+      var _p3 = _p2;
+      return _p3._0.to;
+   };
+   var getFrom = function (_p4) {
+      var _p5 = _p4;
+      return _p5._0.from;
+   };
+   var getEase = function (_p6) {
+      var _p7 = _p6;
+      return _p7._0.ease;
+   };
+   var getDelay = function (_p8) {
+      var _p9 = _p8;
+      return _p9._0.delay;
+   };
+   var getStart = function (_p10) {
+      var _p11 = _p10;
+      return _p11._0.start;
+   };
+   var timeElapsed = F2(function (t,_p12) {
+      var _p13 = _p12;
+      return A2($Basics.max,0,t - (_p13._0.start + _p13._0.delay));
+   });
+   var defaultEase = function (x) {
+      return (1 - $Basics.cos($Basics.pi * x)) / 2;
+   };
+   var spd = F3(function (dos,from,to) {
+      var _p14 = dos;
+      if (_p14.ctor === "Duration") {
+            return $Basics.abs(to - from) / _p14._0;
+         } else {
+            return _p14._0;
+         }
+   });
+   var getSpeed = function (_p15) {
+      var _p16 = _p15;
+      return A3(spd,_p16._0.dos,_p16._0.from,_p16._0.to);
+   };
+   var dur = F3(function (dos,from,to) {
+      var _p17 = dos;
+      if (_p17.ctor === "Duration") {
+            return _p17._0;
+         } else {
+            return $Basics.abs(to - from) / _p17._0;
+         }
+   });
+   var animate = F2(function (t,_p18) {
+      var _p19 = _p18;
+      var _p23 = _p19._0.to;
+      var _p22 = _p19._0.start;
+      var _p21 = _p19._0.from;
+      var duration = A3(dur,_p19._0.dos,_p21,_p23);
+      var fr = A3($Basics.clamp,
+      0,
+      1,
+      (t - _p22 - _p19._0.delay) / duration);
+      var eased = _p19._0.ease(fr);
+      var correction = function () {
+         var _p20 = _p19._0.ramp;
+         if (_p20.ctor === "Nothing") {
+               return 0;
+            } else {
+               var from$ = _p20._0 * (t - _p22);
+               var eased$ = defaultEase(fr);
+               return from$ - from$ * eased$;
+            }
+      }();
+      return _p21 + (_p23 - _p21) * eased + correction;
+   });
+   var velocity = F2(function (t,u) {
+      var forwDiff = A2(animate,t + 10,u);
+      var backDiff = A2(animate,t - 10,u);
+      return (forwDiff - backDiff) / 20;
+   });
+   var timeRemaining = F2(function (t,_p24) {
+      var _p25 = _p24;
+      var duration = A3(dur,_p25._0.dos,_p25._0.from,_p25._0.to);
+      return A2($Basics.max,
+      0,
+      _p25._0.start + _p25._0.delay + duration - t);
+   });
+   var getDuration = function (_p26) {
+      var _p27 = _p26;
+      return A3(dur,_p27._0.dos,_p27._0.from,_p27._0.to);
+   };
+   var equals = F2(function (_p29,_p28) {
+      var _p30 = _p29;
+      var _p33 = _p30._0;
+      var _p31 = _p28;
+      var _p32 = _p31._0;
+      return _U.eq(_p33.start + _p33.delay,
+      _p32.start + _p32.delay) && (_U.eq(_p33.from,
+      _p32.from) && (_U.eq(_p33.to,_p32.to) && (_U.eq(_p33.ramp,
+      _p32.ramp) && ((_U.eq(_p33.dos,_p32.dos) || _U.cmp(1.0e-3,
+      $Basics.abs(A3(dur,_p33.dos,_p33.from,_p33.to) - A3(dur,
+      _p32.dos,
+      _p32.from,
+      _p32.to))) > -1) && A2($List.all,
+      function (t) {
+         return _U.eq(_p33.ease(t),_p32.ease(t));
+      },
+      _U.list([0.1,0.3,0.7,0.9]))))));
+   });
+   var isRunning = F2(function (t,_p34) {
+      var _p35 = _p34;
+      var _p37 = _p35._0.start;
+      var _p36 = _p35._0.delay;
+      var duration = A3(dur,_p35._0.dos,_p35._0.from,_p35._0.to);
+      return _U.cmp(t,_p37 + _p36) > 0 && _U.cmp(t,
+      _p37 + _p36 + duration) < 0;
+   });
+   var isDone = F2(function (t,_p38) {
+      var _p39 = _p38;
+      var duration = A3(dur,_p39._0.dos,_p39._0.from,_p39._0.to);
+      return _U.cmp(t,_p39._0.start + _p39._0.delay + duration) > -1;
+   });
+   var A = function (a) {    return {ctor: "A",_0: a};};
+   var undo = F2(function (t,_p40) {
+      var _p41 = _p40;
+      var _p42 = _p41._0;
+      return A(_U.update(_p42,
+      {from: _p42.to
+      ,to: _p42.from
+      ,start: t
+      ,delay: 0 - A2(timeRemaining,t,_p41)
+      ,ramp: $Maybe.Nothing
+      ,ease: function (t) {
+         return 1 - _p42.ease(1 - t);
+      }}));
+   });
+   var delay = F2(function (x,_p43) {
+      var _p44 = _p43;
+      return A(_U.update(_p44._0,{delay: x}));
+   });
+   var ease = F2(function (x,_p45) {
+      var _p46 = _p45;
+      return A(_U.update(_p46._0,{ease: x}));
+   });
+   var from = F2(function (x,_p47) {
+      var _p48 = _p47;
+      return A(_U.update(_p48._0,{from: x,ramp: $Maybe.Nothing}));
+   });
+   var to = F2(function (x,_p49) {
+      var _p50 = _p49;
+      return A(_U.update(_p50._0,{to: x,ramp: $Maybe.Nothing}));
+   });
+   var AnimRecord = F7(function (a,b,c,d,e,f,g) {
+      return {start: a
+             ,delay: b
+             ,dos: c
+             ,ramp: d
+             ,ease: e
+             ,from: f
+             ,to: g};
+   });
+   var Speed = function (a) {    return {ctor: "Speed",_0: a};};
+   var speed = F2(function (x,_p51) {
+      var _p52 = _p51;
+      return A(_U.update(_p52._0,{dos: Speed($Basics.abs(x))}));
+   });
+   var Duration = function (a) {
+      return {ctor: "Duration",_0: a};
+   };
+   var defaultDuration = Duration(750 * $Time.millisecond);
+   var animation = function (t) {
+      return A(A7(AnimRecord,
+      t,
+      0,
+      defaultDuration,
+      $Maybe.Nothing,
+      defaultEase,
+      0,
+      1));
+   };
+   var retarget = F3(function (t,newTo,_p53) {
+      var _p54 = _p53;
+      var _p57 = _p54;
+      var _p56 = _p54._0;
+      if (_U.eq(newTo,_p56.to)) return _p57; else if (_U.eq(_p56.from,
+         _p56.to)) return A(_U.update(_p56,
+            {start: t
+            ,to: newTo
+            ,dos: defaultDuration
+            ,ramp: $Maybe.Nothing})); else if (A2(isScheduled,t,_p57))
+            return A(_U.update(_p56,{to: newTo,ramp: $Maybe.Nothing}));
+            else if (A2(isDone,t,_p57)) return A(_U.update(_p56,
+                  {start: t
+                  ,delay: 0
+                  ,from: _p56.to
+                  ,to: newTo
+                  ,ramp: $Maybe.Nothing})); else {
+                     var newSpeed = function () {
+                        var _p55 = _p56.dos;
+                        if (_p55.ctor === "Speed") {
+                              return _p56.dos;
+                           } else {
+                              return Speed(A3(spd,_p56.dos,_p56.from,_p56.to));
+                           }
+                     }();
+                     var pos = A2(animate,t,_p57);
+                     var vel = A2(velocity,t,_p57);
+                     return A(A7(AnimRecord,
+                     t,
+                     0,
+                     newSpeed,
+                     $Maybe.Just(vel),
+                     _p56.ease,
+                     pos,
+                     newTo));
+                  }
+   });
+   var $static = function (x) {
+      return A(A7(AnimRecord,
+      0,
+      0,
+      Duration(0),
+      $Maybe.Nothing,
+      defaultEase,
+      x,
+      x));
+   };
+   var duration = F2(function (x,_p58) {
+      var _p59 = _p58;
+      return A(_U.update(_p59._0,{dos: Duration(x)}));
+   });
+   return _elm.Animation.values = {_op: _op
+                                  ,animation: animation
+                                  ,$static: $static
+                                  ,animate: animate
+                                  ,duration: duration
+                                  ,speed: speed
+                                  ,delay: delay
+                                  ,ease: ease
+                                  ,from: from
+                                  ,to: to
+                                  ,undo: undo
+                                  ,retarget: retarget
+                                  ,getStart: getStart
+                                  ,getDuration: getDuration
+                                  ,getSpeed: getSpeed
+                                  ,getDelay: getDelay
+                                  ,getEase: getEase
+                                  ,getFrom: getFrom
+                                  ,getTo: getTo
+                                  ,equals: equals
+                                  ,velocity: velocity
+                                  ,timeElapsed: timeElapsed
+                                  ,timeRemaining: timeRemaining
+                                  ,isScheduled: isScheduled
+                                  ,isRunning: isRunning
+                                  ,isDone: isDone};
+};
+Elm.Transit = Elm.Transit || {};
+Elm.Transit.make = function (_elm) {
+   "use strict";
+   _elm.Transit = _elm.Transit || {};
+   if (_elm.Transit.values) return _elm.Transit.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Animation = Elm.Animation.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var getStatus = function (_p0) {
+      var _p1 = _p0;
+      return _p1._0.status;
+   };
+   var getValue = function (_p2) {
+      var _p3 = _p2;
+      return _p3._0.value;
+   };
+   var triggerTimelineAction = F2(function (targetAction,_p4) {
+      var _p5 = _p4;
+      return {ctor: "_Tuple2"
+             ,_0: _p5._0
+             ,_1: $Effects.batch(_U.list([_p5._1
+                                         ,$Effects.task($Task.succeed(targetAction))]))};
+   });
+   var withEnterDuration = F2(function (d,timeline) {
+      return _U.update(timeline,{enterDuration: d});
+   });
+   var withExitDuration = F2(function (d,timeline) {
+      return _U.update(timeline,{exitDuration: d});
+   });
+   var Timeline = F3(function (a,b,c) {
+      return {exitDuration: a,action: b,enterDuration: c};
+   });
+   var timeline = Timeline;
+   var defaultTimeline = function (action) {
+      return A3(Timeline,100,action,200);
+   };
+   var EnterTick = F2(function (a,b) {
+      return {ctor: "EnterTick",_0: a,_1: b};
+   });
+   var ExitTick = F3(function (a,b,c) {
+      return {ctor: "ExitTick",_0: a,_1: b,_2: c};
+   });
+   var Start = F2(function (a,b) {
+      return {ctor: "Start",_0: a,_1: b};
+   });
+   var Init = function (a) {    return {ctor: "Init",_0: a};};
+   var AnimationState = F2(function (a,b) {
+      return {startTime: a,animation: b};
+   });
+   var Done = {ctor: "Done"};
+   var Enter = {ctor: "Enter"};
+   var enterStep = F3(function (value,animState,state) {
+      return {ctor: "_Tuple2"
+             ,_0: _U.update(state,{value: value,status: Enter})
+             ,_1: $Effects.tick(EnterTick(animState))};
+   });
+   var Exit = {ctor: "Exit"};
+   var exitStep = F4(function (value,timeline,animState,state) {
+      return {ctor: "_Tuple2"
+             ,_0: _U.update(state,{value: value,status: Exit})
+             ,_1: $Effects.tick(A2(ExitTick,timeline,animState))};
+   });
+   var State = F3(function (a,b,c) {
+      return {value: a,status: b,startTime: c};
+   });
+   var initialState = A3(State,0,Done,0);
+   var T = function (a) {    return {ctor: "T",_0: a};};
+   var initial = T(initialState);
+   var update = F3(function (actionWrapper,action,target) {
+      var wrapForTarget = function (_p6) {
+         var _p7 = _p6;
+         return {ctor: "_Tuple2"
+                ,_0: _U.update(target,{transition: T(_p7._0)})
+                ,_1: A2($Effects.map,actionWrapper,_p7._1)};
+      };
+      var state = function () {
+         var _p8 = target.transition;
+         return _p8._0;
+      }();
+      var watchRetarget = F2(function (animState,_p9) {
+         var _p10 = _p9;
+         return _U.eq(state.startTime,
+         animState.startTime) ? {ctor: "_Tuple2"
+                                ,_0: _p10._0
+                                ,_1: _p10._1} : {ctor: "_Tuple2",_0: state,_1: $Effects.none};
+      });
+      var _p11 = action;
+      switch (_p11.ctor)
+      {case "Init": return wrapForTarget({ctor: "_Tuple2"
+                                         ,_0: A3(State,0,Exit,0)
+                                         ,_1: $Effects.tick(Start(_p11._0))});
+         case "Start": var _p13 = _p11._0;
+           var _p12 = _p11._1;
+           var newState = _U.update(state,{startTime: _p12});
+           var newAnim = A2($Animation.ease,
+           $Basics.identity,
+           A2($Animation.duration,
+           _p13.exitDuration,
+           $Animation.animation(_p12)));
+           return wrapForTarget(A4(exitStep,
+           0,
+           _p13,
+           A2(AnimationState,_p12,newAnim),
+           newState));
+         case "ExitTick": var _p16 = _p11._0;
+           var _p15 = _p11._2;
+           var _p14 = _p11._1;
+           if (A2($Animation.isRunning,_p15,_p14.animation))
+           return wrapForTarget(A2(watchRetarget,
+              _p14,
+              A4(exitStep,
+              A2($Animation.animate,_p15,_p14.animation),
+              _p16,
+              _p14,
+              state))); else {
+                 var newAnim = A2($Animation.ease,
+                 $Basics.identity,
+                 A2($Animation.duration,
+                 _p16.enterDuration,
+                 $Animation.animation(_p15)));
+                 return A2(triggerTimelineAction,
+                 _p16.action,
+                 wrapForTarget(A2(watchRetarget,
+                 _p14,
+                 A3(enterStep,0,_U.update(_p14,{animation: newAnim}),state))));
+              }
+         default: var _p18 = _p11._1;
+           var _p17 = _p11._0;
+           return A2($Animation.isRunning,
+           _p18,
+           _p17.animation) ? wrapForTarget(A2(watchRetarget,
+           _p17,
+           A3(enterStep,
+           A2($Animation.animate,_p18,_p17.animation),
+           _p17,
+           state))) : wrapForTarget({ctor: "_Tuple2"
+                                    ,_0: initialState
+                                    ,_1: $Effects.none});}
+   });
+   var init = F2(function (actionWrapper,timeline) {
+      return A2(update,actionWrapper,Init(timeline));
+   });
+   return _elm.Transit.values = {_op: _op
+                                ,initial: initial
+                                ,timeline: timeline
+                                ,defaultTimeline: defaultTimeline
+                                ,withEnterDuration: withEnterDuration
+                                ,withExitDuration: withExitDuration
+                                ,init: init
+                                ,update: update
+                                ,getStatus: getStatus
+                                ,getValue: getValue
+                                ,Timeline: Timeline
+                                ,Exit: Exit
+                                ,Enter: Enter
+                                ,Done: Done};
+};
+Elm.TransitStyle = Elm.TransitStyle || {};
+Elm.TransitStyle.make = function (_elm) {
+   "use strict";
+   _elm.TransitStyle = _elm.TransitStyle || {};
+   if (_elm.TransitStyle.values) return _elm.TransitStyle.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Easing = Elm.Easing.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Transit = Elm.Transit.make(_elm);
+   var _op = {};
+   var easeInCubic1 = F2(function (from,to) {
+      return A5($Easing.ease,
+      $Easing.easeInCubic,
+      $Easing.$float,
+      from,
+      to,
+      1);
+   });
+   var easeOutCubic1 = F2(function (from,to) {
+      return A5($Easing.ease,
+      $Easing.easeOutCubic,
+      $Easing.$float,
+      from,
+      to,
+      1);
+   });
+   var translateX = function (v) {
+      return _U.list([{ctor: "_Tuple2"
+                      ,_0: "transform"
+                      ,_1: A2($Basics._op["++"],
+                      "translateX(",
+                      A2($Basics._op["++"],$Basics.toString(v),"px)"))}]);
+   };
+   var opacity = function (v) {
+      return _U.list([{ctor: "_Tuple2"
+                      ,_0: "opacity"
+                      ,_1: $Basics.toString(v)}]);
+   };
+   var fadeIn = function (v) {
+      return opacity(A3(easeOutCubic1,0,1,v));
+   };
+   var fadeOut = function (v) {
+      return opacity(A3(easeInCubic1,1,0,v));
+   };
+   var slideInLeft = F2(function (offset,v) {
+      return translateX(A3(easeOutCubic1,offset,0,v));
+   });
+   var slideOutLeft = F2(function (offset,v) {
+      return translateX(A3(easeInCubic1,0,0 - offset,v));
+   });
+   var compose = F3(function (exit,enter,transition) {
+      var _p0 = {ctor: "_Tuple2"
+                ,_0: $Transit.getStatus(transition)
+                ,_1: $Transit.getValue(transition)};
+      _v0_2: do {
+         if (_p0.ctor === "_Tuple2") {
+               switch (_p0._0.ctor)
+               {case "Exit": return exit(_p0._1);
+                  case "Enter": return enter(_p0._1);
+                  default: break _v0_2;}
+            } else {
+               break _v0_2;
+            }
+      } while (false);
+      return _U.list([]);
+   });
+   var slideLeft = function (offset) {
+      return A2(compose,slideOutLeft(offset),slideInLeft(offset));
+   };
+   var fade = A2(compose,fadeOut,fadeIn);
+   var fadeSlideLeft = F2(function (offset,t) {
+      return A2($Basics._op["++"],A2(slideLeft,offset,t),fade(t));
+   });
+   return _elm.TransitStyle.values = {_op: _op
+                                     ,fadeSlideLeft: fadeSlideLeft
+                                     ,slideLeft: slideLeft
+                                     ,slideOutLeft: slideOutLeft
+                                     ,slideInLeft: slideInLeft
+                                     ,fade: fade
+                                     ,fadeOut: fadeOut
+                                     ,fadeIn: fadeIn
+                                     ,compose: compose};
+};
+Elm.Menu = Elm.Menu || {};
+Elm.Menu.make = function (_elm) {
+   "use strict";
+   _elm.Menu = _elm.Menu || {};
+   if (_elm.Menu.values) return _elm.Menu.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      if (_p0.ctor === "Update") {
+            var _p4 = _p0._1;
+            var partialProject = model.project;
+            var newProject = function () {
+               var _p1 = _p0._0;
+               switch (_p1)
+               {case "title": return _U.update(partialProject,
+                    {title: $Maybe.Just(_p4)});
+                  case "subtitle": return _U.update(partialProject,
+                    {subtitle: $Maybe.Just(_p4)});
+                  case "date": return _U.update(partialProject,
+                    {date: $Maybe.Just(_p4)});
+                  case "category": return _U.update(partialProject,
+                    {category: _p4});
+                  case "width": var _p2 = $String.toFloat(_p4);
+                    if (_p2.ctor === "Ok") {
+                          return _U.update(partialProject,{w: $Maybe.Just(_p2._0)});
+                       } else {
+                          return _U.update(partialProject,{w: $Maybe.Nothing});
+                       }
+                  case "height": var _p3 = $String.toFloat(_p4);
+                    if (_p3.ctor === "Ok") {
+                          return _U.update(partialProject,{h: $Maybe.Just(_p3._0)});
+                       } else {
+                          return _U.update(partialProject,{h: $Maybe.Nothing});
+                       }
+                  default: return partialProject;}
+            }();
+            return {ctor: "_Tuple2"
+                   ,_0: _U.update(model,{project: newProject})
+                   ,_1: $Effects.none};
+         } else {
+            return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         }
+   });
+   _op["=>"] = F2(function (a,b) {
+      return {ctor: "_Tuple2",_0: a,_1: b};
+   });
+   var view = F2(function (address,model) {
+      var makeLink = F3(function (heading,string,ref) {
+         return A2(heading,
+         _U.list([]),
+         _U.list([A2($Html.a,
+         _U.list([$Html$Attributes.href(ref)]),
+         _U.list([$Html.text(string)]))]));
+      });
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("menu")
+              ,$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "position",
+                                              "fixed")
+                                              ,A2(_op["=>"],"top","0px")
+                                              ,A2(_op["=>"],"left","0px")
+                                              ,A2(_op["=>"],"width","100%")
+                                              ,A2(_op["=>"],"height","100%")
+                                              ,A2(_op["=>"],"backgroundColor","rgba(0, 0, 0, 0.8)")
+                                              ,A2(_op["=>"],"zIndex","997")]))]),
+      _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                                      "position",
+                                                      "fixed")
+                                                      ,A2(_op["=>"],"top","50%")
+                                                      ,A2(_op["=>"],"left","50%")
+                                                      ,A2(_op["=>"],"transform","translate(-50%, -60%)")]))]),
+              _U.list([A3(makeLink,$Html.h1,"HOME","#home")
+                      ,A3(makeLink,$Html.h1,"PROJECTS","#projects")
+                      ,A3(makeLink,$Html.h1,"ABOUT ME","#about")
+                      ,A3(makeLink,$Html.h1,"CONTACT","#contact")]))
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                                      "position",
+                                                      "fixed")
+                                                      ,A2(_op["=>"],"bottom","3em")
+                                                      ,A2(_op["=>"],"left","50%")
+                                                      ,A2(_op["=>"],"transform","translateX(-50%)")]))]),
+              _U.list([A2($Html.h2,
+                      _U.list([]),
+                      _U.list([$Html.text("FOLLOW ME")]))
+                      ,A2($Html.div,
+                      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                      "display",
+                      "inline-block")]))]),
+                      _U.list([A3(makeLink,$Html.h2,"Facebook","#facebook")
+                              ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
+                              ,A3(makeLink,$Html.h2,"Sina Weibo","#weibo")
+                              ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
+                              ,A3(makeLink,$Html.h2,"Instagram","#instagram")
+                              ,A2($Html.h2,_U.list([]),_U.list([$Html.text("|")]))
+                              ,A3(makeLink,$Html.h2,"Behance","#behance")]))]))]));
+   });
+   var PartialProject = F6(function (a,b,c,d,e,f) {
+      return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
+   });
+   var emptyPartialProject = A6(PartialProject,
+   $Maybe.Nothing,
+   $Maybe.Nothing,
+   $Maybe.Nothing,
+   "",
+   $Maybe.Nothing,
+   $Maybe.Nothing);
+   var Model = function (a) {    return {project: a};};
+   var init = Model(emptyPartialProject);
+   var Submit = {ctor: "Submit"};
+   var Update = F2(function (a,b) {
+      return {ctor: "Update",_0: a,_1: b};
+   });
+   var Close = {ctor: "Close"};
+   return _elm.Menu.values = {_op: _op
+                             ,Close: Close
+                             ,Update: Update
+                             ,Submit: Submit
+                             ,Model: Model
+                             ,PartialProject: PartialProject
+                             ,emptyPartialProject: emptyPartialProject
+                             ,init: init
+                             ,update: update
+                             ,view: view};
+};
+Elm.SvgIcon = Elm.SvgIcon || {};
+Elm.SvgIcon.make = function (_elm) {
+   "use strict";
+   _elm.SvgIcon = _elm.SvgIcon || {};
+   if (_elm.SvgIcon.values) return _elm.SvgIcon.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Svg = Elm.Svg.make(_elm),
+   $Svg$Attributes = Elm.Svg.Attributes.make(_elm);
+   var _op = {};
+   var toRgbaString = function (color) {
+      var _p0 = $Color.toRgb(color);
+      var red = _p0.red;
+      var green = _p0.green;
+      var blue = _p0.blue;
+      var alpha = _p0.alpha;
+      return A2($Basics._op["++"],
+      "rgba(",
+      A2($Basics._op["++"],
+      $Basics.toString(red),
+      A2($Basics._op["++"],
+      ",",
+      A2($Basics._op["++"],
+      $Basics.toString(green),
+      A2($Basics._op["++"],
+      ",",
+      A2($Basics._op["++"],
+      $Basics.toString(blue),
+      A2($Basics._op["++"],
+      ",",
+      A2($Basics._op["++"],$Basics.toString(alpha),")"))))))));
+   };
+   var icon2 = F6(function (path1,path2,color1,color2,w,h) {
+      var stringColor2 = toRgbaString(color2);
+      var stringColor1 = toRgbaString(color1);
+      var stringHeight = $Basics.toString(h);
+      var stringWidth = $Basics.toString(w);
+      return A2($Svg.svg,
+      _U.list([$Svg$Attributes.width(stringWidth)
+              ,$Svg$Attributes.height(stringHeight)
+              ,$Svg$Attributes.viewBox("0 0 80 60")]),
+      _U.list([A2($Svg.path,
+              _U.list([$Svg$Attributes.d(path1)
+                      ,$Svg$Attributes.fill(stringColor1)]),
+              _U.list([]))
+              ,A2($Svg.path,
+              _U.list([$Svg$Attributes.d(path2)
+                      ,$Svg$Attributes.fill(stringColor2)]),
+              _U.list([]))]));
+   });
+   var icon = F4(function (path,color,w,h) {
+      var stringColor = toRgbaString(color);
+      var stringHeight = $Basics.toString(h);
+      var stringWidth = $Basics.toString(w);
+      return A2($Svg.svg,
+      _U.list([$Svg$Attributes.width(stringWidth)
+              ,$Svg$Attributes.height(stringHeight)
+              ,$Svg$Attributes.viewBox("0 0 80 60")]),
+      _U.list([A2($Svg.path,
+      _U.list([$Svg$Attributes.d(path)
+              ,$Svg$Attributes.fill(stringColor)]),
+      _U.list([]))]));
+   });
+   return _elm.SvgIcon.values = {_op: _op,icon: icon,icon2: icon2};
+};
+Elm.Native = Elm.Native || {};
+Elm.Native.Scroll = {};
+Elm.Native.Scroll.make = function make(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Scroll = localRuntime.Native.Scroll || {};
+	if (localRuntime.Native.Scroll.values)
+	{
+		return localRuntime.Native.Scroll.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Tuple2 = Elm.Native.Utils.make(localRuntime).Tuple2;
+
+
+	var offset = NS.input('Scroll.offset', Tuple2(window.pageXOffset, window.pageYOffset));
+
+
+	localRuntime.addListener([offset.id], window, 'scroll', function scroll() {
+		localRuntime.notify(offset.id, Tuple2(window.pageXOffset, window.pageYOffset));
+	});
+
+
+	return localRuntime.Native.Scroll.values = {
+		offset: offset,
+	};
+};
+Elm.Scroll = Elm.Scroll || {};
+Elm.Scroll.make = function (_elm) {
+   "use strict";
+   _elm.Scroll = _elm.Scroll || {};
+   if (_elm.Scroll.values) return _elm.Scroll.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Native$Scroll = Elm.Native.Scroll.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var offset = $Native$Scroll.offset;
+   var xOffset = A2($Signal.map,$Basics.fst,offset);
+   var yOffset = A2($Signal.map,$Basics.snd,offset);
+   return _elm.Scroll.values = {_op: _op
+                               ,offset: offset
+                               ,xOffset: xOffset
+                               ,yOffset: yOffset};
+};
 Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
@@ -12760,28 +13795,23 @@ Elm.Main.make = function (_elm) {
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
+   $Html$Lazy = Elm.Html.Lazy.make(_elm),
    $List = Elm.List.make(_elm),
    $Material$Icons$Navigation = Elm.Material.Icons.Navigation.make(_elm),
-   $Material$Icons$Social = Elm.Material.Icons.Social.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Menu = Elm.Menu.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Scroll = Elm.Scroll.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $String = Elm.String.make(_elm),
    $Svg = Elm.Svg.make(_elm),
    $Svg$Attributes = Elm.Svg.Attributes.make(_elm),
-   $Task = Elm.Task.make(_elm);
+   $SvgIcon = Elm.SvgIcon.make(_elm),
+   $Task = Elm.Task.make(_elm),
+   $Transit = Elm.Transit.make(_elm),
+   $TransitStyle = Elm.TransitStyle.make(_elm);
    var _op = {};
-   var PartialProject = F6(function (a,b,c,d,e,f) {
-      return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
-   });
-   var emptyPartialProject = A6(PartialProject,
-   $Maybe.Nothing,
-   $Maybe.Nothing,
-   $Maybe.Nothing,
-   $Maybe.Nothing,
-   $Maybe.Nothing,
-   $Maybe.Nothing);
    var Project = F6(function (a,b,c,d,e,f) {
       return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
    });
@@ -12792,48 +13822,23 @@ Elm.Main.make = function (_elm) {
    _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
    "position",
    "absolute")]))]),
-   _U.list([A2($Html.div,
-           _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                                   "position",
-                                                   "absolute")
-                                                   ,A2(_op["=>"],"top","46px")
-                                                   ,A2(_op["=>"],"left","51px")]))]),
-           _U.list([A2($Svg.svg,
-           _U.list([$Svg$Attributes.width("50px")
-                   ,$Svg$Attributes.height("50px")]),
-           _U.list([A2($Material$Icons$Social.$public,
-           A3($Color.rgb,248,231,28),
-           50)]))]))
-           ,A2($Html.div,
-           _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                                   "position",
-                                                   "absolute")
-                                                   ,A2(_op["=>"],"top","55.8px")
-                                                   ,A2(_op["=>"],"left","94.6px")]))]),
-           _U.list([A2($Svg.svg,
-           _U.list([$Svg$Attributes.width("50px")
-                   ,$Svg$Attributes.height("50px")]),
-           _U.list([A2($Material$Icons$Social.$public,
-           A3($Color.rgb,80,227,194),
-           50)]))]))]));
-   var hamburger = A2($Html.div,
-   _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                           "position",
-                                           "relative")
-                                           ,A2(_op["=>"],"width","100%")]))]),
-   _U.list([A2($Html.div,
+   _U.list([A2($Html.a,
    _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                            "position",
                                            "absolute")
-                                           ,A2(_op["=>"],"top","35px")
-                                           ,A2(_op["=>"],"right","35px")
-                                           ,A2(_op["=>"],"cursor","pointer")]))]),
+                                           ,A2(_op["=>"],"top","46px")
+                                           ,A2(_op["=>"],"left","51px")]))
+           ,$Html$Attributes.href("#home")]),
    _U.list([A2($Svg.svg,
-   _U.list([$Svg$Attributes.width("50px")
-           ,$Svg$Attributes.height("50px")]),
-   _U.list([A2($Material$Icons$Navigation.menu,
-   A3($Color.rgb,74,74,74),
-   50)]))]))]));
+   _U.list([$Svg$Attributes.width("80px")
+           ,$Svg$Attributes.height("60px")]),
+   _U.list([A6($SvgIcon.icon2,
+   "M41.6717791,45.6595092 C39.8108291,46.6786009 37.4625227,47.6090619 34.6267894,48.4509202 C31.791056,49.2927786 28.5122885,49.7137014 24.7903885,49.7137014 C21.0684885,49.7137014 17.6789519,49.0712402 14.6216769,47.7862986 C11.5644019,46.5013569 8.95024944,44.7401271 6.7791411,42.5025562 C4.60803277,40.2649854 2.93541828,37.6286791 1.76124744,34.5935583 C0.58707661,31.5584374 0,28.268593 0,24.7239264 C0,21.1792597 0.598153528,17.8894153 1.79447853,14.8542945 C2.99080353,11.8191736 4.66341802,9.20502119 6.81237219,7.01175869 C8.96132635,4.81849619 11.5422481,3.10157403 14.5552147,1.8609407 C17.5681814,0.620307362 20.8912565,0 24.5245399,0 C27.7147399,0 30.639046,0.487384356 33.297546,1.46216769 C35.956046,2.43695102 38.3043525,3.76618108 40.3425358,5.44989775 L39.2791411,6.51329243 C38.3929744,5.6714341 37.3628211,4.92928065 36.1886503,4.28680982 C35.0144795,3.64433898 33.7738647,3.10157004 32.4667689,2.65848671 C31.1596731,2.21540337 29.8193661,1.88309586 28.4458078,1.66155419 C27.0722494,1.44001253 25.7430194,1.32924335 24.4580777,1.32924335 C21.0020277,1.32924335 17.8561832,1.9384738 15.0204499,3.15695297 C12.1847166,4.37543213 9.7588717,6.04804663 7.74284254,8.17484663 C5.72681337,10.3016466 4.17604496,12.7828761 3.0904908,15.6186094 C2.00493663,18.4543427 1.46216769,21.489418 1.46216769,24.7239264 C1.46216769,27.9584347 1.99385971,31.0156639 3.05725971,33.8957055 C4.12065971,36.7757472 5.6603512,39.2902074 7.67638037,41.4391616 C9.69240953,43.5881157 12.1514851,45.282884 15.053681,46.5235174 C17.9558768,47.7641507 21.2457212,48.3844581 24.9233129,48.3844581 C28.1135129,48.3844581 30.9492037,48.0521506 33.4304703,47.3875256 C35.911737,46.7229006 38.193582,45.8810549 40.2760736,44.8619632 L40.2760735,33.8957062 L18.816178,33.8957062 L18.8161791,17.9340317 L41.6717801,17.9340317 L41.6717791,45.6595092 Z",
+   "M76.8007271,33.1431493 L76.6013406,33.1431493 C76.0253323,34.6496326 75.2499481,35.9677858 74.2751647,37.0976483 C73.3003814,38.2275108 72.2148435,39.1801256 71.0185185,39.9555215 C69.8221935,40.7309173 68.5261942,41.3179939 67.1304817,41.7167689 C65.7347692,42.1155439 64.3058469,42.3149284 62.8436719,42.3149284 C60.6282552,42.3149284 58.5790255,41.9050825 56.6959214,41.0853783 C54.8128172,40.2656742 53.1955873,39.1358286 51.8441831,37.6958078 C50.492779,36.2557869 49.4404718,34.5499417 48.6872302,32.5782209 C47.9339885,30.6065 47.5573733,28.468655 47.5573733,26.1646217 C47.5573733,23.8605883 47.9339885,21.7116664 48.6872302,19.7177914 C49.4404718,17.7239164 50.492779,15.9959173 51.8441831,14.5337423 C53.1955873,13.0715673 54.8128172,11.9306449 56.6959214,11.1109407 C58.5790255,10.2912365 60.6282552,9.88139059 62.8436719,9.88139059 C65.7680219,9.88139059 68.4597128,10.6567748 70.9188253,12.2075665 C73.3779378,13.7583581 75.2720906,16.0623569 76.6013406,19.1196319 L77.4985793,21.1734305 L78.262894,23.5252028 L78.2628948,39.6564417 C78.2628948,42.0934001 78.0081257,44.4195527 77.4985799,46.6349693 C76.989034,48.850386 76.1471883,50.7999234 74.9730175,52.4836401 C73.7988467,54.1673567 72.2480783,55.5076637 70.3206658,56.5046012 C68.3932533,57.5015387 66.0117161,58 63.1759827,58 C60.2959411,58 57.7260963,57.5015387 55.4663713,56.5046012 C53.2066463,55.5076637 51.2792627,54.1008952 49.6841627,52.2842536 L50.6810952,51.2873211 C52.3648119,53.1925794 54.2811185,54.577194 56.4300727,55.4412065 C58.5790269,56.305219 60.8276411,56.7372188 63.1759827,56.7372188 C65.8344827,56.7372188 68.0498662,56.2498345 69.8221995,55.2750511 C71.5945328,54.3002678 72.9902244,53.0153454 74.0093161,51.4202454 C75.0284077,49.8251454 75.7484073,47.9974541 76.1693365,45.9371166 C76.5902657,43.8767791 76.8007271,41.738934 76.8007271,39.5235174 L76.8007271,33.1431493 Z",
+   A3($Color.rgb,248,231,28),
+   A3($Color.rgb,80,227,194),
+   80,
+   60)]))]))]));
    var title$ = A2($Html.h1,
    _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                            "position",
@@ -12841,97 +13846,73 @@ Elm.Main.make = function (_elm) {
                                            ,A2(_op["=>"],"top","41px")
                                            ,A2(_op["=>"],"textAlign","center")]))]),
    _U.list([$Html.text("PROJECTS")]));
-   var SubmitNewProject = {ctor: "SubmitNewProject"};
-   var UpdatePartialProject = F2(function (a,b) {
-      return {ctor: "UpdatePartialProject",_0: a,_1: b};
-   });
-   var addProjectForm = function (address) {
-      return A2($Html.div,
-      _U.list([]),
-      _U.list([A2($Html.input,
-              _U.list([A3($Html$Events.on,
-              "input",
-              $Html$Events.targetValue,
-              function (_p0) {
-                 return A2($Signal.message,
-                 address,
-                 A2(UpdatePartialProject,"title",_p0));
-              })]),
-              _U.list([]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-              "input",
-              $Html$Events.targetValue,
-              function (_p1) {
-                 return A2($Signal.message,
-                 address,
-                 A2(UpdatePartialProject,"subtitle",_p1));
-              })]),
-              _U.list([]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-              "input",
-              $Html$Events.targetValue,
-              function (_p2) {
-                 return A2($Signal.message,
-                 address,
-                 A2(UpdatePartialProject,"date",_p2));
-              })]),
-              _U.list([]))
-              ,A2($Html.select,
-              _U.list([A3($Html$Events.on,
-              "change",
-              $Html$Events.targetValue,
-              function (_p3) {
-                 return A2($Signal.message,
-                 address,
-                 A2(UpdatePartialProject,"category",_p3));
-              })]),
-              _U.list([A2($Html.option,
-                      _U.list([]),
-                      _U.list([$Html.text("Interface")]))
-                      ,A2($Html.option,_U.list([]),_U.list([$Html.text("UX")]))
-                      ,A2($Html.option,_U.list([]),_U.list([$Html.text("Graphic")]))
-                      ,A2($Html.option,
-                      _U.list([]),
-                      _U.list([$Html.text("Photograph")]))]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-              "input",
-              $Html$Events.targetValue,
-              function (_p4) {
-                 return A2($Signal.message,
-                 address,
-                 A2(UpdatePartialProject,"width",_p4));
-              })]),
-              _U.list([]))
-              ,A2($Html.input,
-              _U.list([A3($Html$Events.on,
-              "input",
-              $Html$Events.targetValue,
-              function (_p5) {
-                 return A2($Signal.message,
-                 address,
-                 A2(UpdatePartialProject,"height",_p5));
-              })]),
-              _U.list([]))
-              ,A2($Html.button,
-              _U.list([A2($Html$Events.onClick,address,SubmitNewProject)]),
-              _U.list([$Html.text("Add")]))]));
+   var Offset = function (a) {    return {ctor: "Offset",_0: a};};
+   var TransitAction = function (a) {
+      return {ctor: "TransitAction",_0: a};
    };
+   var MenuAction = function (a) {
+      return {ctor: "MenuAction",_0: a};
+   };
+   var ToggleMenu = {ctor: "ToggleMenu"};
+   var hamburger = F2(function (address,_p0) {
+      var _p1 = _p0;
+      var icon = _p1._0 ? $Material$Icons$Navigation.close(A3($Color.rgb,
+      255,
+      255,
+      255)) : $Material$Icons$Navigation.menu(A3($Color.rgb,
+      74,
+      74,
+      74));
+      return A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "position",
+                                              "relative")
+                                              ,A2(_op["=>"],"width","100%")]))]),
+      _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "position",
+                                              "absolute")
+                                              ,A2(_op["=>"],"top","35px")
+                                              ,A2(_op["=>"],"right","35px")
+                                              ,A2(_op["=>"],"cursor","pointer")
+                                              ,A2(_op["=>"],"zIndex","998")
+                                              ,A2(_op["=>"],
+                                              "transform",
+                                              A2($Basics._op["++"],
+                                              "translateY(",
+                                              A2($Basics._op["++"],$Basics.toString(_p1._1),"px)")))]))
+              ,A2($Html$Events.onClick,address,ToggleMenu)]),
+      _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                                      "position",
+                                                      "absolute")
+                                                      ,A2(_op["=>"],"top","0px")
+                                                      ,A2(_op["=>"],"left","0px")
+                                                      ,A2(_op["=>"],"width","50px")
+                                                      ,A2(_op["=>"],"height","50px")
+                                                      ,A2(_op["=>"],"zIndex","999")]))]),
+              _U.list([]))
+              ,A2($Svg.svg,
+              _U.list([$Svg$Attributes.width("50px")
+                      ,$Svg$Attributes.height("50px")]),
+              _U.list([icon(50)]))]))]));
+   });
+   var CloseMenu = {ctor: "CloseMenu"};
+   var OpenMenu = {ctor: "OpenMenu"};
+   var SubmitNewProject = {ctor: "SubmitNewProject"};
    var RemoveProject = function (a) {
       return {ctor: "RemoveProject",_0: a};
    };
-   var viewProject = F2(function (address,_p6) {
-      var _p7 = _p6;
-      var _p8 = _p7._1;
+   var viewProject = F2(function (address,_p2) {
+      var _p3 = _p2;
+      var _p4 = _p3._1;
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "width",
-                                              A2($Basics._op["++"],$Basics.toString(_p8.w),"px"))
+                                              A2($Basics._op["++"],$Basics.toString(_p4.w),"px"))
                                               ,A2(_op["=>"],
                                               "height",
-                                              A2($Basics._op["++"],$Basics.toString(_p8.h),"px"))
+                                              A2($Basics._op["++"],$Basics.toString(_p4.h),"px"))
                                               ,A2(_op["=>"],"backgroundColor","#ffffff")
                                               ,A2(_op["=>"],"color","#333333")
                                               ,A2(_op["=>"],"fontFamily","monospace")
@@ -12939,7 +13920,7 @@ Elm.Main.make = function (_elm) {
                                               ,A2(_op["=>"],"left","40px")
                                               ,A2(_op["=>"],"display","inline-block")
                                               ,A2(_op["=>"],"margin","11px")]))
-              ,A2($Html$Events.onClick,address,RemoveProject(_p7._0))]),
+              ,A2($Html$Events.onClick,address,RemoveProject(_p3._0))]),
       _U.list([A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "position",
@@ -12950,171 +13931,199 @@ Elm.Main.make = function (_elm) {
               _U.list([]),
               _U.list([$Html.text(A2($Basics._op["++"],
               "<",
-              A2($Basics._op["++"],_p8.title,">")))]))
+              A2($Basics._op["++"],_p4.title,">")))]))
               ,A2($Html.h4,
               _U.list([]),
               _U.list([$Html.text(A2($Basics._op["++"],
-              _p8.subtitle,
-              A2($Basics._op["++"]," - ",_p8.date)))]))]))]));
+              _p4.subtitle,
+              A2($Basics._op["++"]," - ",_p4.date)))]))]))]));
    });
    var AddProject = function (a) {
       return {ctor: "AddProject",_0: a};
    };
    var Hover = function (a) {    return {ctor: "Hover",_0: a};};
    var Click = function (a) {    return {ctor: "Click",_0: a};};
-   var Model = F5(function (a,b,c,d,e) {
+   var Page = F7(function (a,b,c,d,e,f,g) {
       return {current: a
              ,hovered: b
              ,projects: c
              ,nextID: d
-             ,pendingProject: e};
+             ,menu: e
+             ,menuOpen: f
+             ,scrollOffset: g};
    });
    var Photograph = {ctor: "Photograph"};
    var Graphic = {ctor: "Graphic"};
    var UX = {ctor: "UX"};
    var Interface = {ctor: "Interface"};
-   var update = F2(function (action,model) {
+   var convertPartialProject = function (project) {
+      var readCategory = function () {
+         var _p5 = project.category;
+         switch (_p5)
+         {case "Interface": return $Maybe.Just(Interface);
+            case "UX": return $Maybe.Just(UX);
+            case "Graphic": return $Maybe.Just(Graphic);
+            case "Photograph": return $Maybe.Just(Photograph);
+            default: return $Maybe.Nothing;}
+      }();
+      var andThen = $Maybe.andThen;
+      return A2(andThen,
+      project.title,
+      function (title) {
+         return A2(andThen,
+         project.subtitle,
+         function (subtitle) {
+            return A2(andThen,
+            project.date,
+            function (date) {
+               return A2(andThen,
+               readCategory,
+               function (category) {
+                  return A2(andThen,
+                  project.w,
+                  function (w) {
+                     return A2(andThen,
+                     project.h,
+                     function (h) {
+                        return $Maybe.Just(A6(Project,
+                        title,
+                        subtitle,
+                        date,
+                        category,
+                        w,
+                        h));
+                     });
+                  });
+               });
+            });
+         });
+      });
+   };
+   var update = F2(function (action,rootModel) {
       update: while (true) {
-         var _p9 = action;
-         switch (_p9.ctor)
+         var model = rootModel.page;
+         var _p6 = action;
+         switch (_p6.ctor)
          {case "Click": return {ctor: "_Tuple2"
-                               ,_0: _U.update(model,{current: _p9._0,hovered: $Maybe.Nothing})
+                               ,_0: _U.update(rootModel,
+                               {page: _U.update(model,
+                               {current: _p6._0,hovered: $Maybe.Nothing})})
                                ,_1: $Effects.none};
             case "Hover": return {ctor: "_Tuple2"
-                                 ,_0: _U.update(model,{hovered: _p9._0})
+                                 ,_0: _U.update(rootModel,
+                                 {page: _U.update(model,{hovered: _p6._0})})
                                  ,_1: $Effects.none};
             case "AddProject": return {ctor: "_Tuple2"
-                                      ,_0: _U.update(model,
+                                      ,_0: _U.update(rootModel,
+                                      {page: _U.update(model,
                                       {projects: A2($List._op["::"],
-                                      {ctor: "_Tuple2",_0: model.nextID,_1: _p9._0},
+                                      {ctor: "_Tuple2",_0: model.nextID,_1: _p6._0},
                                       model.projects)
-                                      ,nextID: model.nextID + 1})
+                                      ,nextID: model.nextID + 1})})
                                       ,_1: $Effects.none};
             case "RemoveProject": return {ctor: "_Tuple2"
-                                         ,_0: _U.update(model,
+                                         ,_0: _U.update(rootModel,
+                                         {page: _U.update(model,
                                          {projects: A2($List.filter,
-                                         function (_p10) {
-                                            var _p11 = _p10;
-                                            return !_U.eq(_p11._0,_p9._0);
+                                         function (_p7) {
+                                            var _p8 = _p7;
+                                            return !_U.eq(_p8._0,_p6._0);
                                          },
-                                         model.projects)})
+                                         model.projects)})})
                                          ,_1: $Effects.none};
-            case "UpdatePartialProject": var _p16 = _p9._1;
-              var partialProject = model.pendingProject;
-              var newProject = function () {
-                 var _p12 = _p9._0;
-                 switch (_p12)
-                 {case "title": return _U.update(partialProject,
-                      {title: $Maybe.Just(_p16)});
-                    case "subtitle": return _U.update(partialProject,
-                      {subtitle: $Maybe.Just(_p16)});
-                    case "date": return _U.update(partialProject,
-                      {date: $Maybe.Just(_p16)});
-                    case "category": var newCategory = function () {
-                         var _p13 = _p16;
-                         switch (_p13)
-                         {case "Interface": return $Maybe.Just(Interface);
-                            case "UX": return $Maybe.Just(UX);
-                            case "Graphic": return $Maybe.Just(Graphic);
-                            case "Photograph": return $Maybe.Just(Photograph);
-                            default: return $Maybe.Nothing;}
-                      }();
-                      return _U.update(partialProject,{category: newCategory});
-                    case "width": var _p14 = $String.toFloat(_p16);
-                      if (_p14.ctor === "Ok") {
-                            return _U.update(partialProject,{w: $Maybe.Just(_p14._0)});
-                         } else {
-                            return _U.update(partialProject,{w: $Maybe.Nothing});
-                         }
-                    case "height": var _p15 = $String.toFloat(_p16);
-                      if (_p15.ctor === "Ok") {
-                            return _U.update(partialProject,{h: $Maybe.Just(_p15._0)});
-                         } else {
-                            return _U.update(partialProject,{h: $Maybe.Nothing});
-                         }
-                    default: return partialProject;}
-              }();
-              return {ctor: "_Tuple2"
-                     ,_0: _U.update(model,
-                     {pendingProject: A2($Debug.log,"proj",newProject)})
-                     ,_1: $Effects.none};
-            default: var andThen = $Maybe.andThen;
-              var newProject = A2(andThen,
-              model.pendingProject.title,
-              function (title) {
-                 return A2(andThen,
-                 model.pendingProject.subtitle,
-                 function (subtitle) {
-                    return A2(andThen,
-                    model.pendingProject.date,
-                    function (date) {
-                       return A2(andThen,
-                       model.pendingProject.category,
-                       function (category) {
-                          return A2(andThen,
-                          model.pendingProject.w,
-                          function (w) {
-                             return A2(andThen,
-                             model.pendingProject.h,
-                             function (h) {
-                                return $Maybe.Just(A6(Project,
-                                title,
-                                subtitle,
-                                date,
-                                category,
-                                w,
-                                h));
-                             });
-                          });
-                       });
-                    });
-                 });
-              });
-              var _p17 = newProject;
-              if (_p17.ctor === "Just") {
-                    var _v8 = AddProject(_p17._0),
-                    _v9 = _U.update(model,{pendingProject: emptyPartialProject});
-                    action = _v8;
-                    model = _v9;
+            case "SubmitNewProject":
+            var newProject = convertPartialProject(model.menu.project);
+              var _p9 = newProject;
+              if (_p9.ctor === "Just") {
+                    var _v6 = AddProject(_p9._0),_v7 = rootModel;
+                    action = _v6;
+                    rootModel = _v7;
                     continue update;
                  } else {
-                    return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-                 }}
+                    return {ctor: "_Tuple2",_0: rootModel,_1: $Effects.none};
+                 }
+            case "OpenMenu": return {ctor: "_Tuple2"
+                                    ,_0: _U.update(rootModel,
+                                    {page: _U.update(model,{menuOpen: true})})
+                                    ,_1: $Effects.none};
+            case "CloseMenu": return {ctor: "_Tuple2"
+                                     ,_0: _U.update(rootModel,
+                                     {page: _U.update(model,{menuOpen: false})})
+                                     ,_1: $Effects.none};
+            case "ToggleMenu":
+            var timeline = model.menuOpen ? A3($Transit.timeline,
+              100,
+              CloseMenu,
+              200) : A3($Transit.timeline,100,OpenMenu,500);
+              return A3($Transit.init,TransitAction,timeline,rootModel);
+            case "MenuAction": var _p12 = _p6._0;
+              var _p10 = A2($Menu.update,_p12,model.menu);
+              var newMenu = _p10._0;
+              var effect = _p10._1;
+              var updated = _U.update(rootModel,
+              {page: _U.update(model,{menu: newMenu})});
+              var _p11 = _p12;
+              switch (_p11.ctor)
+              {case "Close": var _v9 = CloseMenu,_v10 = updated;
+                   action = _v9;
+                   rootModel = _v10;
+                   continue update;
+                 case "Submit": var _v11 = SubmitNewProject,_v12 = updated;
+                   action = _v11;
+                   rootModel = _v12;
+                   continue update;
+                 default: return {ctor: "_Tuple2"
+                                 ,_0: updated
+                                 ,_1: $Effects.none};}
+            case "TransitAction": return A3($Transit.update,
+              TransitAction,
+              _p6._0,
+              rootModel);
+            default: return {ctor: "_Tuple2"
+                            ,_0: _U.update(rootModel,
+                            {page: _U.update(model,{scrollOffset: _p6._0})})
+                            ,_1: $Effects.none};}
       }
    });
    var All = {ctor: "All"};
-   var model = A5(Model,
-   All,
-   $Maybe.Nothing,
-   _U.list([{ctor: "_Tuple2"
-            ,_0: 0
-            ,_1: A6(Project,"JBL CONNECT","APP","JULY,2015",UX,541.4,412)}
-           ,{ctor: "_Tuple2"
-            ,_0: 1
-            ,_1: A6(Project,"GIGI","WEBSITE","DEC,2015",Interface,776,412)}
-           ,{ctor: "_Tuple2"
-            ,_0: 2
-            ,_1: A6(Project,"BREATH","POSTER","DEC,2011",Graphic,310,412)}
-           ,{ctor: "_Tuple2"
-            ,_0: 3
-            ,_1: A6(Project,"FUTURE","POSTER","DEC,2013",Graphic,310,412)}
-           ,{ctor: "_Tuple2"
-            ,_0: 4
-            ,_1: A6(Project,
-            "HORIZON",
-            "UX",
-            "JULY,2014",
-            Photograph,
-            670,
-            130)}]),
-   5,
-   emptyPartialProject);
-   var selectors = F2(function (address,model) {
+   var model = function () {
+      var page = A7(Page,
+      All,
+      $Maybe.Nothing,
+      _U.list([{ctor: "_Tuple2"
+               ,_0: 0
+               ,_1: A6(Project,"JBL CONNECT","APP","JULY,2015",UX,541.4,412)}
+              ,{ctor: "_Tuple2"
+               ,_0: 1
+               ,_1: A6(Project,"GIGI","WEBSITE","DEC,2015",Interface,776,412)}
+              ,{ctor: "_Tuple2"
+               ,_0: 2
+               ,_1: A6(Project,"BREATH","POSTER","DEC,2011",Graphic,310,412)}
+              ,{ctor: "_Tuple2"
+               ,_0: 3
+               ,_1: A6(Project,"FUTURE","POSTER","DEC,2013",Graphic,310,412)}
+              ,{ctor: "_Tuple2"
+               ,_0: 4
+               ,_1: A6(Project,
+               "HORIZON",
+               "UX",
+               "JULY,2014",
+               Photograph,
+               670,
+               130)}]),
+      5,
+      $Menu.init,
+      false,
+      0);
+      return {page: page,transition: $Transit.initial};
+   }();
+   var selectors = F2(function (address,_p13) {
+      var _p14 = _p13;
       var styler = function (category) {
          return A2($Html.h2,
          _U.list([$Html$Attributes.classList(_U.list([A2(_op["=>"],
                  "selected",
-                 _U.eq(category,model.current))]))
+                 _U.eq(category,_p14._0))]))
                  ,$Html$Attributes.style(_U.list([A2(_op["=>"],
                                                  "display",
                                                  "inherit")
@@ -13122,15 +14131,14 @@ Elm.Main.make = function (_elm) {
                                                  ,A2(_op["=>"],"cursor","pointer")
                                                  ,A2(_op["=>"],
                                                  "backgroundColor",
-                                                 _U.eq(model.hovered,
-                                                 $Maybe.Just(category)) ? "#ffffff" : "inherit")]))
+                                                 _U.eq(_p14._1,$Maybe.Just(category)) ? "#ffffff" : "inherit")]))
                  ,A2($Html$Events.onClick,address,Click(category))
                  ,A2($Html$Events.onMouseOver,
                  address,
                  Hover($Maybe.Just(category)))
                  ,A2($Html$Events.onMouseLeave,address,Hover($Maybe.Nothing))]),
-         _U.list([$Html.text(function (_p18) {
-            return $String.toUpper($Basics.toString(_p18));
+         _U.list([$Html.text(function (_p15) {
+            return $String.toUpper($Basics.toString(_p15));
          }(category))]));
       };
       return A2($Html.div,
@@ -13145,7 +14153,9 @@ Elm.Main.make = function (_elm) {
               ,styler(Graphic)
               ,styler(Photograph)]));
    });
-   var projects = F2(function (address,model) {
+   var projects = F2(function (address,_p16) {
+      var _p17 = _p16;
+      var _p20 = _p17._0;
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
       "position",
@@ -13153,28 +14163,40 @@ Elm.Main.make = function (_elm) {
       A2($List.map,
       viewProject(address),
       A2($List.filter,
-      function (_p19) {
-         var _p20 = _p19;
-         return _U.eq(_p20._1.category,
-         model.current) || _U.eq(model.current,All);
+      function (_p18) {
+         var _p19 = _p18;
+         return _U.eq(_p19._1.category,_p20) || _U.eq(_p20,All);
       },
-      model.projects)));
+      _p17._1)));
    });
-   var view = F2(function (address,model) {
+   var view = F2(function (address,rootModel) {
+      var model = rootModel.page;
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "color",
                                               "#50e3c2")
                                               ,A2(_op["=>"],"fontFamily","Raleway,sans-serif")
                                               ,A2(_op["=>"],"maxWidth","75em")
-                                              ,A2(_op["=>"],"margin","auto")
-                                              ,A2(_op["=>"],"backgroundColor","#f2f9fa")]))]),
+                                              ,A2(_op["=>"],"margin","auto")]))]),
       _U.list([logo
-              ,hamburger
+              ,A3($Html$Lazy.lazy2,
+              hamburger,
+              address,
+              {ctor: "_Tuple2",_0: model.menuOpen,_1: model.scrollOffset})
               ,title$
-              ,A2(selectors,address,model)
-              ,A2(projects,address,model)
-              ,addProjectForm(address)]));
+              ,A3($Html$Lazy.lazy2,
+              selectors,
+              address,
+              {ctor: "_Tuple2",_0: model.current,_1: model.hovered})
+              ,A3($Html$Lazy.lazy2,
+              projects,
+              address,
+              {ctor: "_Tuple2",_0: model.current,_1: model.projects})
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.style($TransitStyle.fade(rootModel.transition))]),
+              model.menuOpen ? _U.list([A2($Menu.view,
+              A2($Signal.forwardTo,address,MenuAction),
+              model.menu)]) : _U.list([]))]));
    });
    var title = Elm.Native.Port.make(_elm).outbound("title",
    function (v) {
@@ -13186,7 +14208,7 @@ Elm.Main.make = function (_elm) {
                                     ,_1: $Effects.none}
                              ,view: view
                              ,update: update
-                             ,inputs: _U.list([])});
+                             ,inputs: _U.list([A2($Signal.map,Offset,$Scroll.yOffset)])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",
    app.tasks);
@@ -13198,24 +14220,27 @@ Elm.Main.make = function (_elm) {
                              ,UX: UX
                              ,Graphic: Graphic
                              ,Photograph: Photograph
-                             ,Model: Model
+                             ,Page: Page
                              ,model: model
                              ,Click: Click
                              ,Hover: Hover
                              ,AddProject: AddProject
                              ,RemoveProject: RemoveProject
-                             ,UpdatePartialProject: UpdatePartialProject
                              ,SubmitNewProject: SubmitNewProject
+                             ,OpenMenu: OpenMenu
+                             ,CloseMenu: CloseMenu
+                             ,ToggleMenu: ToggleMenu
+                             ,MenuAction: MenuAction
+                             ,TransitAction: TransitAction
+                             ,Offset: Offset
                              ,update: update
                              ,view: view
                              ,logo: logo
                              ,hamburger: hamburger
                              ,title$: title$
                              ,selectors: selectors
-                             ,addProjectForm: addProjectForm
                              ,Project: Project
-                             ,PartialProject: PartialProject
-                             ,emptyPartialProject: emptyPartialProject
+                             ,convertPartialProject: convertPartialProject
                              ,projects: projects
                              ,viewProject: viewProject};
 };
