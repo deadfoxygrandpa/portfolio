@@ -136,13 +136,13 @@ view address model =
                         [ "display" => "inline-block"
                         ]
                     ]
-                    [ makeLink Html.h2 "Facebook" "#facebook"
+                    [ makeLink Html.h2 "Facebook" "https://www.facebook.com/profile.php?id=100002934303779"
                     , Html.h2 [] [ text "|" ]
-                    , makeLink Html.h2 "Sina Weibo" "#weibo"
+                    , makeLink Html.h2 "Sina Weibo" "http://www.weibo.com/u/1829414713?wvr=5&wvr=5&lf=reg"
                     , Html.h2 [] [ text "|" ]
-                    , makeLink Html.h2 "Instagram" "#instagram"
+                    , makeLink Html.h2 "Instagram" "https://www.instagram.com/gigiguo80/"
                     , Html.h2 [] [ text "|" ]
-                    , makeLink Html.h2 "Behance" "#behance"
+                    , makeLink Html.h2 "Behance" "https://www.behance.net/GigiGUO"
                     ]
                 ]
             ]
