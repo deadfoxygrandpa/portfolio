@@ -7,16 +7,11 @@ import Html.Lazy exposing (..)
 import Effects exposing (..)
 import Svg
 import Svg.Attributes
-import Material.Icons.Social
-import Material.Icons.Navigation
 import Task
 import Color
 import String
-import Result
 import Random
 import StartApp
-import Transit
-import TransitStyle
 import Menu
 import SvgIcon
 import ColorScheme
@@ -90,6 +85,7 @@ type Action
     | Offset Int
 
 
+update : Action -> Model -> ( Model, Effects.Effects Action )
 update action model =
     case action of
         Click category ->
