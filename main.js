@@ -13058,6 +13058,71 @@ Elm.Svg.Attributes.make = function (_elm) {
                                        ,wordSpacing: wordSpacing
                                        ,writingMode: writingMode};
 };
+Elm.StartApp = Elm.StartApp || {};
+Elm.StartApp.make = function (_elm) {
+   "use strict";
+   _elm.StartApp = _elm.StartApp || {};
+   if (_elm.StartApp.values) return _elm.StartApp.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var start = function (config) {
+      var updateStep = F2(function (action,_p0) {
+         var _p1 = _p0;
+         var _p2 = A2(config.update,action,_p1._0);
+         var newModel = _p2._0;
+         var additionalEffects = _p2._1;
+         return {ctor: "_Tuple2"
+                ,_0: newModel
+                ,_1: $Effects.batch(_U.list([_p1._1,additionalEffects]))};
+      });
+      var update = F2(function (actions,_p3) {
+         var _p4 = _p3;
+         return A3($List.foldl,
+         updateStep,
+         {ctor: "_Tuple2",_0: _p4._0,_1: $Effects.none},
+         actions);
+      });
+      var messages = $Signal.mailbox(_U.list([]));
+      var singleton = function (action) {
+         return _U.list([action]);
+      };
+      var address = A2($Signal.forwardTo,messages.address,singleton);
+      var inputs = $Signal.mergeMany(A2($List._op["::"],
+      messages.signal,
+      A2($List.map,$Signal.map(singleton),config.inputs)));
+      var effectsAndModel = A3($Signal.foldp,
+      update,
+      config.init,
+      inputs);
+      var model = A2($Signal.map,$Basics.fst,effectsAndModel);
+      return {html: A2($Signal.map,config.view(address),model)
+             ,model: model
+             ,tasks: A2($Signal.map,
+             function (_p5) {
+                return A2($Effects.toTask,messages.address,$Basics.snd(_p5));
+             },
+             effectsAndModel)};
+   };
+   var App = F3(function (a,b,c) {
+      return {html: a,model: b,tasks: c};
+   });
+   var Config = F4(function (a,b,c,d) {
+      return {init: a,update: b,view: c,inputs: d};
+   });
+   return _elm.StartApp.values = {_op: _op
+                                 ,start: start
+                                 ,Config: Config
+                                 ,App: App};
+};
 Elm.Material = Elm.Material || {};
 Elm.Material.Icons = Elm.Material.Icons || {};
 Elm.Material.Icons.Internal = Elm.Material.Icons.Internal || {};
@@ -13116,79 +13181,6 @@ Elm.Material.Icons.Internal.make = function (_elm) {
    return _elm.Material.Icons.Internal.values = {_op: _op
                                                 ,icon: icon
                                                 ,toRgbaString: toRgbaString};
-};
-Elm.Material = Elm.Material || {};
-Elm.Material.Icons = Elm.Material.Icons || {};
-Elm.Material.Icons.Social = Elm.Material.Icons.Social || {};
-Elm.Material.Icons.Social.make = function (_elm) {
-   "use strict";
-   _elm.Material = _elm.Material || {};
-   _elm.Material.Icons = _elm.Material.Icons || {};
-   _elm.Material.Icons.Social = _elm.Material.Icons.Social || {};
-   if (_elm.Material.Icons.Social.values)
-   return _elm.Material.Icons.Social.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Color = Elm.Color.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Material$Icons$Internal = Elm.Material.Icons.Internal.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Svg = Elm.Svg.make(_elm);
-   var _op = {};
-   var whatshot = $Material$Icons$Internal.icon("M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z");
-   var share = $Material$Icons$Internal.icon("M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z");
-   var school = $Material$Icons$Internal.icon("M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z");
-   var $public = $Material$Icons$Internal.icon("M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z");
-   var poll = $Material$Icons$Internal.icon("M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z");
-   var plus_one = $Material$Icons$Internal.icon("M10 8H8v4H4v2h4v4h2v-4h4v-2h-4zm4.5-1.92V7.9l2.5-.5V18h2V5z");
-   var person_outline = $Material$Icons$Internal.icon("M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z");
-   var person_add = $Material$Icons$Internal.icon("M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z");
-   var person = $Material$Icons$Internal.icon("M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z");
-   var people_outline = $Material$Icons$Internal.icon("M16.5 13c-1.2 0-3.07.34-4.5 1-1.43-.67-3.3-1-4.5-1C5.33 13 1 14.08 1 16.25V19h22v-2.75c0-2.17-4.33-3.25-6.5-3.25zm-4 4.5h-10v-1.25c0-.54 2.56-1.75 5-1.75s5 1.21 5 1.75v1.25zm9 0H14v-1.25c0-.46-.2-.86-.52-1.22.88-.3 1.96-.53 3.02-.53 2.44 0 5 1.21 5 1.75v1.25zM7.5 12c1.93 0 3.5-1.57 3.5-3.5S9.43 5 7.5 5 4 6.57 4 8.5 5.57 12 7.5 12zm0-5.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 5.5c1.93 0 3.5-1.57 3.5-3.5S18.43 5 16.5 5 13 6.57 13 8.5s1.57 3.5 3.5 3.5zm0-5.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z");
-   var people = $Material$Icons$Internal.icon("M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z");
-   var party_mode = $Material$Icons$Internal.icon("M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 3c1.63 0 3.06.79 3.98 2H12c-1.66 0-3 1.34-3 3 0 .35.07.69.18 1H7.1c-.06-.32-.1-.66-.1-1 0-2.76 2.24-5 5-5zm0 10c-1.63 0-3.06-.79-3.98-2H12c1.66 0 3-1.34 3-3 0-.35-.07-.69-.18-1h2.08c.07.32.1.66.1 1 0 2.76-2.24 5-5 5z");
-   var pages = $Material$Icons$Internal.icon("M3 5v6h5L7 7l4 1V3H5c-1.1 0-2 .9-2 2zm5 8H3v6c0 1.1.9 2 2 2h6v-5l-4 1 1-4zm9 4l-4-1v5h6c1.1 0 2-.9 2-2v-6h-5l1 4zm2-14h-6v5l4-1-1 4h5V5c0-1.1-.9-2-2-2z");
-   var notifications_paused = $Material$Icons$Internal.icon("M11.5 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6v-5.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-2.87.68-5 3.25-5 6.32V16l-2 2v1h17v-1l-2-2zm-4-6.2l-2.8 3.4H14V15H9v-1.8l2.8-3.4H9V8h5v1.8z");
-   var notifications_off = $Material$Icons$Internal.icon("M11.5 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zM18 10.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-.51.12-.99.32-1.45.56L18 14.18V10.5zm-.27 8.5l2 2L21 19.73 4.27 3 3 4.27l2.92 2.92C5.34 8.16 5 9.29 5 10.5V16l-2 2v1h14.73z");
-   var notifications_none = $Material$Icons$Internal.icon("M11.5 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6v-5.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-2.87.68-5 3.25-5 6.32V16l-2 2v1h17v-1l-2-2zm-2 1H7v-6.5C7 8.01 9.01 6 11.5 6S16 8.01 16 10.5V17z");
-   var notifications_active = $Material$Icons$Internal.icon("M6.58 3.58L5.15 2.15C2.76 3.97 1.18 6.8 1.03 10h2c.15-2.65 1.51-4.97 3.55-6.42zM19.97 10h2c-.15-3.2-1.73-6.03-4.13-7.85l-1.43 1.43c2.05 1.45 3.41 3.77 3.56 6.42zm-1.97.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-2.87.68-5 3.25-5 6.32V16l-2 2v1h17v-1l-2-2v-5.5zM11.5 22c.14 0 .27-.01.4-.04.65-.13 1.19-.58 1.44-1.18.1-.24.16-.5.16-.78h-4c0 1.1.9 2 2 2z");
-   var notifications = $Material$Icons$Internal.icon("M11.5 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6v-5.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-2.87.68-5 3.25-5 6.32V16l-2 2v1h17v-1l-2-2z");
-   var mood_bad = $Material$Icons$Internal.icon("M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 3c-2.33 0-4.31 1.46-5.11 3.5h10.22c-.8-2.04-2.78-3.5-5.11-3.5z");
-   var mood = $Material$Icons$Internal.icon("M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z");
-   var location_city = $Material$Icons$Internal.icon("M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z");
-   var group_add = $Material$Icons$Internal.icon("M8 10H5V7H3v3H0v2h3v3h2v-3h3v-2zm10 1c1.66 0 2.99-1.34 2.99-3S19.66 5 18 5c-.32 0-.63.05-.91.14.57.81.9 1.79.9 2.86s-.34 2.04-.9 2.86c.28.09.59.14.91.14zm-5 0c1.66 0 2.99-1.34 2.99-3S14.66 5 13 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm6.62 2.16c.83.73 1.38 1.66 1.38 2.84v2h3v-2c0-1.54-2.37-2.49-4.38-2.84zM13 13c-2 0-6 1-6 3v2h12v-2c0-2-4-3-6-3z");
-   var group = $Material$Icons$Internal.icon("M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z");
-   var domain = $Material$Icons$Internal.icon("M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z");
-   var cake = $Material$Icons$Internal.icon("M12 6c1.11 0 2-.9 2-2 0-.38-.1-.73-.29-1.03L12 0l-1.71 2.97c-.19.3-.29.65-.29 1.03 0 1.1.9 2 2 2zm4.6 9.99l-1.07-1.07-1.08 1.07c-1.3 1.3-3.58 1.31-4.89 0l-1.07-1.07-1.09 1.07C6.75 16.64 5.88 17 4.96 17c-.73 0-1.4-.23-1.96-.61V21c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-4.61c-.56.38-1.23.61-1.96.61-.92 0-1.79-.36-2.44-1.01zM18 9h-5V7h-2v2H6c-1.66 0-3 1.34-3 3v1.54c0 1.08.88 1.96 1.96 1.96.52 0 1.02-.2 1.38-.57l2.14-2.13 2.13 2.13c.74.74 2.03.74 2.77 0l2.14-2.13 2.13 2.13c.37.37.86.57 1.38.57 1.08 0 1.96-.88 1.96-1.96V12C21 10.34 19.66 9 18 9z");
-   return _elm.Material.Icons.Social.values = {_op: _op
-                                              ,cake: cake
-                                              ,domain: domain
-                                              ,group: group
-                                              ,group_add: group_add
-                                              ,location_city: location_city
-                                              ,mood: mood
-                                              ,mood_bad: mood_bad
-                                              ,notifications: notifications
-                                              ,notifications_active: notifications_active
-                                              ,notifications_none: notifications_none
-                                              ,notifications_off: notifications_off
-                                              ,notifications_paused: notifications_paused
-                                              ,pages: pages
-                                              ,party_mode: party_mode
-                                              ,people: people
-                                              ,people_outline: people_outline
-                                              ,person: person
-                                              ,person_add: person_add
-                                              ,person_outline: person_outline
-                                              ,plus_one: plus_one
-                                              ,poll: poll
-                                              ,$public: $public
-                                              ,school: school
-                                              ,share: share
-                                              ,whatshot: whatshot};
 };
 Elm.Material = Elm.Material || {};
 Elm.Material.Icons = Elm.Material.Icons || {};
@@ -13254,71 +13246,6 @@ Elm.Material.Icons.Navigation.make = function (_elm) {
                                                   ,refresh: refresh
                                                   ,unfold_less: unfold_less
                                                   ,unfold_more: unfold_more};
-};
-Elm.StartApp = Elm.StartApp || {};
-Elm.StartApp.make = function (_elm) {
-   "use strict";
-   _elm.StartApp = _elm.StartApp || {};
-   if (_elm.StartApp.values) return _elm.StartApp.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
-   $Effects = Elm.Effects.make(_elm),
-   $Html = Elm.Html.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Task = Elm.Task.make(_elm);
-   var _op = {};
-   var start = function (config) {
-      var updateStep = F2(function (action,_p0) {
-         var _p1 = _p0;
-         var _p2 = A2(config.update,action,_p1._0);
-         var newModel = _p2._0;
-         var additionalEffects = _p2._1;
-         return {ctor: "_Tuple2"
-                ,_0: newModel
-                ,_1: $Effects.batch(_U.list([_p1._1,additionalEffects]))};
-      });
-      var update = F2(function (actions,_p3) {
-         var _p4 = _p3;
-         return A3($List.foldl,
-         updateStep,
-         {ctor: "_Tuple2",_0: _p4._0,_1: $Effects.none},
-         actions);
-      });
-      var messages = $Signal.mailbox(_U.list([]));
-      var singleton = function (action) {
-         return _U.list([action]);
-      };
-      var address = A2($Signal.forwardTo,messages.address,singleton);
-      var inputs = $Signal.mergeMany(A2($List._op["::"],
-      messages.signal,
-      A2($List.map,$Signal.map(singleton),config.inputs)));
-      var effectsAndModel = A3($Signal.foldp,
-      update,
-      config.init,
-      inputs);
-      var model = A2($Signal.map,$Basics.fst,effectsAndModel);
-      return {html: A2($Signal.map,config.view(address),model)
-             ,model: model
-             ,tasks: A2($Signal.map,
-             function (_p5) {
-                return A2($Effects.toTask,messages.address,$Basics.snd(_p5));
-             },
-             effectsAndModel)};
-   };
-   var App = F3(function (a,b,c) {
-      return {html: a,model: b,tasks: c};
-   });
-   var Config = F4(function (a,b,c,d) {
-      return {init: a,update: b,view: c,inputs: d};
-   });
-   return _elm.StartApp.values = {_op: _op
-                                 ,start: start
-                                 ,Config: Config
-                                 ,App: App};
 };
 Elm.Animation = Elm.Animation || {};
 Elm.Animation.make = function (_elm) {
@@ -13852,57 +13779,28 @@ Elm.Menu.make = function (_elm) {
    if (_elm.Menu.values) return _elm.Menu.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $Html$Lazy = Elm.Html.Lazy.make(_elm),
    $List = Elm.List.make(_elm),
+   $Material$Icons$Navigation = Elm.Material.Icons.Navigation.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm);
+   $Svg = Elm.Svg.make(_elm),
+   $Svg$Attributes = Elm.Svg.Attributes.make(_elm),
+   $Transit = Elm.Transit.make(_elm),
+   $TransitStyle = Elm.TransitStyle.make(_elm);
    var _op = {};
-   var update = F2(function (action,model) {
-      var _p0 = action;
-      if (_p0.ctor === "Update") {
-            var _p4 = _p0._1;
-            var partialProject = model.project;
-            var newProject = function () {
-               var _p1 = _p0._0;
-               switch (_p1)
-               {case "title": return _U.update(partialProject,
-                    {title: $Maybe.Just(_p4)});
-                  case "subtitle": return _U.update(partialProject,
-                    {subtitle: $Maybe.Just(_p4)});
-                  case "date": return _U.update(partialProject,
-                    {date: $Maybe.Just(_p4)});
-                  case "category": return _U.update(partialProject,
-                    {category: _p4});
-                  case "width": var _p2 = $String.toFloat(_p4);
-                    if (_p2.ctor === "Ok") {
-                          return _U.update(partialProject,{w: $Maybe.Just(_p2._0)});
-                       } else {
-                          return _U.update(partialProject,{w: $Maybe.Nothing});
-                       }
-                  case "height": var _p3 = $String.toFloat(_p4);
-                    if (_p3.ctor === "Ok") {
-                          return _U.update(partialProject,{h: $Maybe.Just(_p3._0)});
-                       } else {
-                          return _U.update(partialProject,{h: $Maybe.Nothing});
-                       }
-                  default: return partialProject;}
-            }();
-            return {ctor: "_Tuple2"
-                   ,_0: _U.update(model,{project: newProject})
-                   ,_1: $Effects.none};
-         } else {
-            return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         }
-   });
+   var init = {open: false,transition: $Transit.initial};
    _op["=>"] = F2(function (a,b) {
       return {ctor: "_Tuple2",_0: a,_1: b};
    });
-   var view = F2(function (address,model) {
+   var menu = F2(function (address,model) {
       var makeLink = F4(function (heading,string,ref,target) {
          return A2(heading,
          _U.list([]),
@@ -13913,15 +13811,15 @@ Elm.Menu.make = function (_elm) {
       });
       return A2($Html.div,
       _U.list([$Html$Attributes.$class("menu")
-              ,$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                              "position",
-                                              "fixed")
-                                              ,A2(_op["=>"],"top","0px")
-                                              ,A2(_op["=>"],"left","0px")
-                                              ,A2(_op["=>"],"width","100%")
-                                              ,A2(_op["=>"],"height","100%")
-                                              ,A2(_op["=>"],"backgroundColor","rgba(0, 0, 0, 0.8)")
-                                              ,A2(_op["=>"],"zIndex","997")]))]),
+              ,$Html$Attributes.style(A2($Basics._op["++"],
+              _U.list([A2(_op["=>"],"position","fixed")
+                      ,A2(_op["=>"],"top","0px")
+                      ,A2(_op["=>"],"left","0px")
+                      ,A2(_op["=>"],"width","100%")
+                      ,A2(_op["=>"],"height","100%")
+                      ,A2(_op["=>"],"backgroundColor","rgba(0, 0, 0, 0.8)")
+                      ,A2(_op["=>"],"zIndex","997")]),
+              $TransitStyle.fade(model.transition)))]),
       _U.list([A2($Html.div,
               _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                                       "position",
@@ -13971,33 +13869,92 @@ Elm.Menu.make = function (_elm) {
                               "https://www.behance.net/GigiGUO",
                               "_blank")]))]))]));
    });
-   var PartialProject = F6(function (a,b,c,d,e,f) {
-      return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
+   var TransitAction = function (a) {
+      return {ctor: "TransitAction",_0: a};
+   };
+   var Toggle = {ctor: "Toggle"};
+   var hamburger = F2(function (address,_p0) {
+      var _p1 = _p0;
+      var icon = _p1._0 ? $Material$Icons$Navigation.close(A3($Color.rgb,
+      255,
+      255,
+      255)) : $Material$Icons$Navigation.menu(A3($Color.rgb,
+      74,
+      74,
+      74));
+      return A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "position",
+                                              "relative")
+                                              ,A2(_op["=>"],"width","100%")]))]),
+      _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                              "position",
+                                              "absolute")
+                                              ,A2(_op["=>"],"top","35px")
+                                              ,A2(_op["=>"],"right","35px")
+                                              ,A2(_op["=>"],"cursor","pointer")
+                                              ,A2(_op["=>"],"zIndex","998")
+                                              ,A2(_op["=>"],
+                                              "transform",
+                                              A2($Basics._op["++"],
+                                              "translateY(",
+                                              A2($Basics._op["++"],$Basics.toString(_p1._1),"px)")))]))
+              ,A2($Html$Events.onClick,address,Toggle)]),
+      _U.list([A2($Html.div,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
+                                                      "position",
+                                                      "absolute")
+                                                      ,A2(_op["=>"],"top","0px")
+                                                      ,A2(_op["=>"],"left","0px")
+                                                      ,A2(_op["=>"],"width","50px")
+                                                      ,A2(_op["=>"],"height","50px")
+                                                      ,A2(_op["=>"],"zIndex","999")]))]),
+              _U.list([]))
+              ,A2($Svg.svg,
+              _U.list([$Svg$Attributes.width("50px")
+                      ,$Svg$Attributes.height("50px")]),
+              _U.list([icon(50)]))]))]));
    });
-   var emptyPartialProject = A6(PartialProject,
-   $Maybe.Nothing,
-   $Maybe.Nothing,
-   $Maybe.Nothing,
-   "",
-   $Maybe.Nothing,
-   $Maybe.Nothing);
-   var Model = function (a) {    return {project: a};};
-   var init = Model(emptyPartialProject);
-   var Submit = {ctor: "Submit"};
-   var Update = F2(function (a,b) {
-      return {ctor: "Update",_0: a,_1: b};
+   var view = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([A3($Html$Lazy.lazy2,
+              hamburger,
+              address,
+              {ctor: "_Tuple2",_0: model.open,_1: 0})
+              ,model.open ? A2(menu,address,model) : A2($Html.div,
+              _U.list([]),
+              _U.list([]))]));
    });
+   var Open = {ctor: "Open"};
    var Close = {ctor: "Close"};
+   var update = F2(function (action,model) {
+      var _p2 = action;
+      switch (_p2.ctor)
+      {case "Close": return {ctor: "_Tuple2"
+                            ,_0: _U.update(model,{open: false})
+                            ,_1: $Effects.none};
+         case "Open": return {ctor: "_Tuple2"
+                             ,_0: _U.update(model,{open: true})
+                             ,_1: $Effects.none};
+         case "Toggle": var timeline = model.open ? A3($Transit.timeline,
+           100,
+           Close,
+           200) : A3($Transit.timeline,100,Open,500);
+           return A3($Transit.init,TransitAction,timeline,model);
+         default: return A3($Transit.update,TransitAction,_p2._0,model);}
+   });
    return _elm.Menu.values = {_op: _op
                              ,Close: Close
-                             ,Update: Update
-                             ,Submit: Submit
-                             ,Model: Model
-                             ,PartialProject: PartialProject
-                             ,emptyPartialProject: emptyPartialProject
+                             ,Open: Open
+                             ,Toggle: Toggle
+                             ,TransitAction: TransitAction
                              ,init: init
                              ,update: update
-                             ,view: view};
+                             ,view: view
+                             ,menu: menu
+                             ,hamburger: hamburger};
 };
 Elm.SvgIcon = Elm.SvgIcon || {};
 Elm.SvgIcon.make = function (_elm) {
@@ -14134,7 +14091,6 @@ Elm.Main.make = function (_elm) {
    $Html$Events = Elm.Html.Events.make(_elm),
    $Html$Lazy = Elm.Html.Lazy.make(_elm),
    $List = Elm.List.make(_elm),
-   $Material$Icons$Navigation = Elm.Material.Icons.Navigation.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Menu = Elm.Menu.make(_elm),
    $Random = Elm.Random.make(_elm),
@@ -14146,12 +14102,10 @@ Elm.Main.make = function (_elm) {
    $Svg = Elm.Svg.make(_elm),
    $Svg$Attributes = Elm.Svg.Attributes.make(_elm),
    $SvgIcon = Elm.SvgIcon.make(_elm),
-   $Task = Elm.Task.make(_elm),
-   $Transit = Elm.Transit.make(_elm),
-   $TransitStyle = Elm.TransitStyle.make(_elm);
+   $Task = Elm.Task.make(_elm);
    var _op = {};
-   var Project = F6(function (a,b,c,d,e,f) {
-      return {title: a,subtitle: b,date: c,category: d,w: e,h: f};
+   var Project = F3(function (a,b,c) {
+      return {category: a,w: b,h: c};
    });
    _op["=>"] = F2(function (a,b) {
       return {ctor: "_Tuple2",_0: a,_1: b};
@@ -14184,284 +14138,87 @@ Elm.Main.make = function (_elm) {
                                            ,A2(_op["=>"],"top","41px")
                                            ,A2(_op["=>"],"textAlign","center")]))]),
    _U.list([$Html.text("PROJECTS")]));
-   var Offset = function (a) {    return {ctor: "Offset",_0: a};};
-   var TransitAction = function (a) {
-      return {ctor: "TransitAction",_0: a};
-   };
-   var MenuAction = function (a) {
-      return {ctor: "MenuAction",_0: a};
-   };
-   var ToggleMenu = {ctor: "ToggleMenu"};
-   var hamburger = F2(function (address,_p0) {
-      var _p1 = _p0;
-      var icon = _p1._0 ? $Material$Icons$Navigation.close(A3($Color.rgb,
-      255,
-      255,
-      255)) : $Material$Icons$Navigation.menu(A3($Color.rgb,
-      74,
-      74,
-      74));
-      return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                              "position",
-                                              "relative")
-                                              ,A2(_op["=>"],"width","100%")]))]),
-      _U.list([A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                              "position",
-                                              "absolute")
-                                              ,A2(_op["=>"],"top","35px")
-                                              ,A2(_op["=>"],"right","35px")
-                                              ,A2(_op["=>"],"cursor","pointer")
-                                              ,A2(_op["=>"],"zIndex","998")
-                                              ,A2(_op["=>"],
-                                              "transform",
-                                              A2($Basics._op["++"],
-                                              "translateY(",
-                                              A2($Basics._op["++"],$Basics.toString(_p1._1),"px)")))]))
-              ,A2($Html$Events.onClick,address,ToggleMenu)]),
-      _U.list([A2($Html.div,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
-                                                      "position",
-                                                      "absolute")
-                                                      ,A2(_op["=>"],"top","0px")
-                                                      ,A2(_op["=>"],"left","0px")
-                                                      ,A2(_op["=>"],"width","50px")
-                                                      ,A2(_op["=>"],"height","50px")
-                                                      ,A2(_op["=>"],"zIndex","999")]))]),
-              _U.list([]))
-              ,A2($Svg.svg,
-              _U.list([$Svg$Attributes.width("50px")
-                      ,$Svg$Attributes.height("50px")]),
-              _U.list([icon(50)]))]))]));
-   });
-   var CloseMenu = {ctor: "CloseMenu"};
-   var OpenMenu = {ctor: "OpenMenu"};
-   var SubmitNewProject = {ctor: "SubmitNewProject"};
-   var RemoveProject = function (a) {
-      return {ctor: "RemoveProject",_0: a};
-   };
-   var viewProject = F3(function (address,color,_p2) {
-      var _p3 = _p2;
-      var _p4 = _p3._1;
+   var viewProject = F3(function (address,color,project) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "width",
-                                              A2($Basics._op["++"],$Basics.toString(_p4.w),"px"))
+                                              A2($Basics._op["++"],$Basics.toString(project.w),"px"))
                                               ,A2(_op["=>"],
                                               "height",
-                                              A2($Basics._op["++"],$Basics.toString(_p4.h),"px"))
+                                              A2($Basics._op["++"],$Basics.toString(project.h),"px"))
                                               ,A2(_op["=>"],"backgroundColor",color.hex)
                                               ,A2(_op["=>"],"color","#333333")
                                               ,A2(_op["=>"],"fontFamily","monospace")
                                               ,A2(_op["=>"],"position","relative")
                                               ,A2(_op["=>"],"left","40px")
                                               ,A2(_op["=>"],"display","inline-block")
-                                              ,A2(_op["=>"],"margin","11px")]))
-              ,A2($Html$Events.onClick,address,RemoveProject(_p3._0))]),
+                                              ,A2(_op["=>"],"margin","0px")]))]),
       _U.list([A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "position",
                                               "absolute")
                                               ,A2(_op["=>"],"bottom","20px")
                                               ,A2(_op["=>"],"left","40px")]))]),
-      _U.list([A2($Html.h3,
-              _U.list([]),
-              _U.list([$Html.text(A2($Basics._op["++"],
-              "<",
-              A2($Basics._op["++"],_p4.title,">")))]))
-              ,A2($Html.h4,
-              _U.list([]),
-              _U.list([$Html.text(A2($Basics._op["++"],
-              _p4.subtitle,
-              A2($Basics._op["++"]," - ",_p4.date)))]))]))]));
+      _U.list([]))]));
    });
-   var AddProject = function (a) {
-      return {ctor: "AddProject",_0: a};
+   var Offset = function (a) {    return {ctor: "Offset",_0: a};};
+   var MenuAction = function (a) {
+      return {ctor: "MenuAction",_0: a};
    };
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      switch (_p0.ctor)
+      {case "Click": return {ctor: "_Tuple2"
+                            ,_0: _U.update(model,{current: _p0._0,hovered: $Maybe.Nothing})
+                            ,_1: $Effects.none};
+         case "Hover": return {ctor: "_Tuple2"
+                              ,_0: _U.update(model,{hovered: _p0._0})
+                              ,_1: $Effects.none};
+         case "MenuAction": var _p1 = A2($Menu.update,_p0._0,model.menu);
+           var newMenu = _p1._0;
+           var effect = _p1._1;
+           return {ctor: "_Tuple2"
+                  ,_0: _U.update(model,{menu: newMenu})
+                  ,_1: A2($Effects.map,MenuAction,effect)};
+         default: return {ctor: "_Tuple2"
+                         ,_0: _U.update(model,{scrollOffset: _p0._0})
+                         ,_1: $Effects.none};}
+   });
    var Hover = function (a) {    return {ctor: "Hover",_0: a};};
    var Click = function (a) {    return {ctor: "Click",_0: a};};
-   var Page = F7(function (a,b,c,d,e,f,g) {
+   var Model = F6(function (a,b,c,d,e,f) {
       return {current: a
              ,hovered: b
              ,projects: c
-             ,nextID: d
-             ,menu: e
-             ,menuOpen: f
-             ,scrollOffset: g};
+             ,menu: d
+             ,menuOpen: e
+             ,scrollOffset: f};
    });
    var Photograph = {ctor: "Photograph"};
    var Graphic = {ctor: "Graphic"};
    var UX = {ctor: "UX"};
    var Interface = {ctor: "Interface"};
-   var convertPartialProject = function (project) {
-      var readCategory = function () {
-         var _p5 = project.category;
-         switch (_p5)
-         {case "Interface": return $Maybe.Just(Interface);
-            case "UX": return $Maybe.Just(UX);
-            case "Graphic": return $Maybe.Just(Graphic);
-            case "Photograph": return $Maybe.Just(Photograph);
-            default: return $Maybe.Nothing;}
-      }();
-      var andThen = $Maybe.andThen;
-      return A2(andThen,
-      project.title,
-      function (title) {
-         return A2(andThen,
-         project.subtitle,
-         function (subtitle) {
-            return A2(andThen,
-            project.date,
-            function (date) {
-               return A2(andThen,
-               readCategory,
-               function (category) {
-                  return A2(andThen,
-                  project.w,
-                  function (w) {
-                     return A2(andThen,
-                     project.h,
-                     function (h) {
-                        return $Maybe.Just(A6(Project,
-                        title,
-                        subtitle,
-                        date,
-                        category,
-                        w,
-                        h));
-                     });
-                  });
-               });
-            });
-         });
-      });
-   };
-   var update = F2(function (action,rootModel) {
-      update: while (true) {
-         var model = rootModel.page;
-         var _p6 = action;
-         switch (_p6.ctor)
-         {case "Click": return {ctor: "_Tuple2"
-                               ,_0: _U.update(rootModel,
-                               {page: _U.update(model,
-                               {current: _p6._0,hovered: $Maybe.Nothing})})
-                               ,_1: $Effects.none};
-            case "Hover": return {ctor: "_Tuple2"
-                                 ,_0: _U.update(rootModel,
-                                 {page: _U.update(model,{hovered: _p6._0})})
-                                 ,_1: $Effects.none};
-            case "AddProject": return {ctor: "_Tuple2"
-                                      ,_0: _U.update(rootModel,
-                                      {page: _U.update(model,
-                                      {projects: A2($List._op["::"],
-                                      {ctor: "_Tuple2",_0: model.nextID,_1: _p6._0},
-                                      model.projects)
-                                      ,nextID: model.nextID + 1})})
-                                      ,_1: $Effects.none};
-            case "RemoveProject": return {ctor: "_Tuple2"
-                                         ,_0: _U.update(rootModel,
-                                         {page: _U.update(model,
-                                         {projects: A2($List.filter,
-                                         function (_p7) {
-                                            var _p8 = _p7;
-                                            return !_U.eq(_p8._0,_p6._0);
-                                         },
-                                         model.projects)})})
-                                         ,_1: $Effects.none};
-            case "SubmitNewProject":
-            var newProject = convertPartialProject(model.menu.project);
-              var _p9 = newProject;
-              if (_p9.ctor === "Just") {
-                    var _v6 = AddProject(_p9._0),_v7 = rootModel;
-                    action = _v6;
-                    rootModel = _v7;
-                    continue update;
-                 } else {
-                    return {ctor: "_Tuple2",_0: rootModel,_1: $Effects.none};
-                 }
-            case "OpenMenu": return {ctor: "_Tuple2"
-                                    ,_0: _U.update(rootModel,
-                                    {page: _U.update(model,{menuOpen: true})})
-                                    ,_1: $Effects.none};
-            case "CloseMenu": return {ctor: "_Tuple2"
-                                     ,_0: _U.update(rootModel,
-                                     {page: _U.update(model,{menuOpen: false})})
-                                     ,_1: $Effects.none};
-            case "ToggleMenu":
-            var timeline = model.menuOpen ? A3($Transit.timeline,
-              100,
-              CloseMenu,
-              200) : A3($Transit.timeline,100,OpenMenu,500);
-              return A3($Transit.init,TransitAction,timeline,rootModel);
-            case "MenuAction": var _p12 = _p6._0;
-              var _p10 = A2($Menu.update,_p12,model.menu);
-              var newMenu = _p10._0;
-              var effect = _p10._1;
-              var updated = _U.update(rootModel,
-              {page: _U.update(model,{menu: newMenu})});
-              var _p11 = _p12;
-              switch (_p11.ctor)
-              {case "Close": var _v9 = CloseMenu,_v10 = updated;
-                   action = _v9;
-                   rootModel = _v10;
-                   continue update;
-                 case "Submit": var _v11 = SubmitNewProject,_v12 = updated;
-                   action = _v11;
-                   rootModel = _v12;
-                   continue update;
-                 default: return {ctor: "_Tuple2"
-                                 ,_0: updated
-                                 ,_1: $Effects.none};}
-            case "TransitAction": return A3($Transit.update,
-              TransitAction,
-              _p6._0,
-              rootModel);
-            default: return {ctor: "_Tuple2"
-                            ,_0: _U.update(rootModel,
-                            {page: _U.update(model,{scrollOffset: _p6._0})})
-                            ,_1: $Effects.none};}
-      }
-   });
    var All = {ctor: "All"};
-   var model = function () {
-      var page = A7(Page,
-      All,
-      $Maybe.Nothing,
-      _U.list([{ctor: "_Tuple2"
-               ,_0: 0
-               ,_1: A6(Project,"JBL CONNECT","APP","JULY,2015",UX,541.4,412)}
-              ,{ctor: "_Tuple2"
-               ,_0: 1
-               ,_1: A6(Project,"GIGI","WEBSITE","DEC,2015",Interface,776,412)}
-              ,{ctor: "_Tuple2"
-               ,_0: 2
-               ,_1: A6(Project,"BREATH","POSTER","DEC,2011",Graphic,310,412)}
-              ,{ctor: "_Tuple2"
-               ,_0: 3
-               ,_1: A6(Project,"FUTURE","POSTER","DEC,2013",Graphic,310,412)}
-              ,{ctor: "_Tuple2"
-               ,_0: 4
-               ,_1: A6(Project,
-               "HORIZON",
-               "UX",
-               "JULY,2014",
-               Photograph,
-               670,
-               130)}]),
-      5,
-      $Menu.init,
-      false,
-      0);
-      return {page: page,transition: $Transit.initial};
-   }();
-   var selectors = F2(function (address,_p13) {
-      var _p14 = _p13;
+   var model = A6(Model,
+   All,
+   $Maybe.Nothing,
+   _U.list([A3(Project,UX,562,412)
+           ,A3(Project,UX,776,412)
+           ,A3(Project,Interface,335,247)
+           ,A3(Project,Graphic,312,247)
+           ,A3(Project,Graphic,692,247)
+           ,A3(Project,Photograph,975,130)
+           ,A3(Project,Photograph,363,130)]),
+   $Menu.init,
+   false,
+   0);
+   var selectors = F2(function (address,_p2) {
+      var _p3 = _p2;
       var styler = function (category) {
          return A2($Html.h2,
          _U.list([$Html$Attributes.classList(_U.list([A2(_op["=>"],
                  "selected",
-                 _U.eq(category,_p14._0))]))
+                 _U.eq(category,_p3._0))]))
                  ,$Html$Attributes.style(_U.list([A2(_op["=>"],
                                                  "display",
                                                  "inherit")
@@ -14469,14 +14226,14 @@ Elm.Main.make = function (_elm) {
                                                  ,A2(_op["=>"],"cursor","pointer")
                                                  ,A2(_op["=>"],
                                                  "backgroundColor",
-                                                 _U.eq(_p14._1,$Maybe.Just(category)) ? "#ffffff" : "inherit")]))
+                                                 _U.eq(_p3._1,$Maybe.Just(category)) ? "#ffffff" : "inherit")]))
                  ,A2($Html$Events.onClick,address,Click(category))
                  ,A2($Html$Events.onMouseOver,
                  address,
                  Hover($Maybe.Just(category)))
                  ,A2($Html$Events.onMouseLeave,address,Hover($Maybe.Nothing))]),
-         _U.list([$Html.text(function (_p15) {
-            return $String.toUpper($Basics.toString(_p15));
+         _U.list([$Html.text(function (_p4) {
+            return $String.toUpper($Basics.toString(_p4));
          }(category))]));
       };
       return A2($Html.div,
@@ -14491,14 +14248,14 @@ Elm.Main.make = function (_elm) {
               ,styler(Graphic)
               ,styler(Photograph)]));
    });
-   var projects = F2(function (address,_p16) {
-      var _p17 = _p16;
-      var _p21 = _p17._0;
+   var projects = F2(function (address,_p5) {
+      var _p6 = _p5;
+      var _p8 = _p6._0;
       var seed = $Random.initialSeed(12014591);
-      var _p18 = A2($Random.generate,
+      var _p7 = A2($Random.generate,
       A2($Random.list,100,$ColorScheme.randomColor),
       seed);
-      var colors = _p18._0;
+      var colors = _p7._0;
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
       "position",
@@ -14507,26 +14264,23 @@ Elm.Main.make = function (_elm) {
       viewProject(address),
       colors,
       A2($List.filter,
-      function (_p19) {
-         var _p20 = _p19;
-         return _U.eq(_p20._1.category,_p21) || _U.eq(_p21,All);
+      function (project) {
+         return _U.eq(project.category,_p8) || _U.eq(_p8,All);
       },
-      _p17._1)));
+      _p6._1)));
    });
-   var view = F2(function (address,rootModel) {
-      var model = rootModel.page;
+   var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],
                                               "color",
                                               "#50e3c2")
                                               ,A2(_op["=>"],"fontFamily","Raleway,sans-serif")
-                                              ,A2(_op["=>"],"maxWidth","75em")
+                                              ,A2(_op["=>"],"maxWidth","90em")
                                               ,A2(_op["=>"],"margin","auto")]))]),
       _U.list([logo
-              ,A3($Html$Lazy.lazy2,
-              hamburger,
-              address,
-              {ctor: "_Tuple2",_0: model.menuOpen,_1: model.scrollOffset})
+              ,A2($Menu.view,
+              A2($Signal.forwardTo,address,MenuAction),
+              model.menu)
               ,title$
               ,A3($Html$Lazy.lazy2,
               selectors,
@@ -14535,12 +14289,7 @@ Elm.Main.make = function (_elm) {
               ,A3($Html$Lazy.lazy2,
               projects,
               address,
-              {ctor: "_Tuple2",_0: model.current,_1: model.projects})
-              ,A2($Html.div,
-              _U.list([$Html$Attributes.style($TransitStyle.fade(rootModel.transition))]),
-              model.menuOpen ? _U.list([A2($Menu.view,
-              A2($Signal.forwardTo,address,MenuAction),
-              model.menu)]) : _U.list([]))]));
+              {ctor: "_Tuple2",_0: model.current,_1: model.projects})]));
    });
    var title = Elm.Native.Port.make(_elm).outbound("title",
    function (v) {
@@ -14564,27 +14313,18 @@ Elm.Main.make = function (_elm) {
                              ,UX: UX
                              ,Graphic: Graphic
                              ,Photograph: Photograph
-                             ,Page: Page
+                             ,Model: Model
                              ,model: model
                              ,Click: Click
                              ,Hover: Hover
-                             ,AddProject: AddProject
-                             ,RemoveProject: RemoveProject
-                             ,SubmitNewProject: SubmitNewProject
-                             ,OpenMenu: OpenMenu
-                             ,CloseMenu: CloseMenu
-                             ,ToggleMenu: ToggleMenu
                              ,MenuAction: MenuAction
-                             ,TransitAction: TransitAction
                              ,Offset: Offset
                              ,update: update
                              ,view: view
                              ,logo: logo
-                             ,hamburger: hamburger
                              ,title$: title$
                              ,selectors: selectors
                              ,Project: Project
-                             ,convertPartialProject: convertPartialProject
                              ,projects: projects
                              ,viewProject: viewProject};
 };
