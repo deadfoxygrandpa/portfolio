@@ -147,7 +147,7 @@ hamburger address ( open, yOffset ) =
             [ div
                 [ style
                     [ "position" => "absolute"
-                    , "top" => "-35px"
+                    , "top" => "-45px"
                     , "right" => "35px"
                     , "cursor" => "pointer"
                     , "zIndex" => "998"

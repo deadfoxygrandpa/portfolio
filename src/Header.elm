@@ -55,8 +55,8 @@ logo =
         [ Html.a
             [ style
                 [ "position" => "absolute"
-                , "top" => "46px"
-                , "left" => "51px"
+                , "top" => "40px"
+                , "left" => "50px"
                 , "zIndex" => "996"
                 ]
             , Html.Attributes.href "#home"
