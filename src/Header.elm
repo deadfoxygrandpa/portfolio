@@ -7,6 +7,7 @@ import Svg
 import Svg.Attributes
 import SvgIcon
 import ColorScheme exposing (..)
+import Menu
 
 
 (=>) : a -> b -> ( a, b )
@@ -15,16 +16,16 @@ import ColorScheme exposing (..)
 
 
 type alias Model =
-    ()
+    { menu : Menu.Model }
 
 
-type alias Action =
-    ()
+type Action
+    = MenuAction Menu.Action
 
 
 init : Model
 init =
-    ()
+    { menu = Menu.init }
 
 
 view : Signal.Address Action -> Model -> Html
@@ -33,12 +34,18 @@ view address model =
         []
         [ logo
         , title' highlight1
+        , Menu.view (Signal.forwardTo address MenuAction) model.menu
         ]
 
 
 update : Action -> Model -> ( Model, Effects.Effects Action )
 update action model =
-    ( model, Effects.none )
+    case action of
+        MenuAction menuAction ->
+            let
+                ( newMenu, effect ) = Menu.update menuAction model.menu
+            in
+                ( { model | menu = newMenu }, Effects.map MenuAction effect )
 
 
 logo : Html

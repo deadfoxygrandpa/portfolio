@@ -9,7 +9,6 @@ import Task
 import String
 import Random
 import StartApp
-import Menu
 import Header
 import ColorScheme
 import Scroll
@@ -47,14 +46,9 @@ type alias Model =
     { current : Category
     , hovered : Maybe Category
     , projects : List Project
-    , menu : Menu.Model
     , header : Header.Model
     , scrollOffset : Int
     }
-
-
-type alias ID =
-    Int
 
 
 model : Model
@@ -70,7 +64,6 @@ model =
         , Project Photograph 975 130
         , Project Photograph 363 130
         ]
-        Menu.init
         Header.init
         0
 
@@ -78,7 +71,6 @@ model =
 type Action
     = Click Category
     | Hover (Maybe Category)
-    | MenuAction Menu.Action
     | HeaderAction Header.Action
     | Offset Int
 
@@ -91,12 +83,6 @@ update action model =
 
         Hover category ->
             ( { model | hovered = category }, none )
-
-        MenuAction menuAction ->
-            let
-                ( newMenu, effect ) = Menu.update menuAction model.menu
-            in
-                ( { model | menu = newMenu }, Effects.map MenuAction effect )
 
         HeaderAction headerAction ->
             let
@@ -118,8 +104,7 @@ view address model =
             , "margin" => "auto"
             ]
         ]
-        <| [ Menu.view (Signal.forwardTo address MenuAction) model.menu
-           , Header.view (Signal.forwardTo address HeaderAction) model.header
+        <| [ Header.view (Signal.forwardTo address HeaderAction) model.header
            , lazy2 selectors address ( model.current, model.hovered )
            , lazy2 projects address ( model.current, model.projects )
            ]

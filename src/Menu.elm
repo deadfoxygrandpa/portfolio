@@ -9,7 +9,6 @@ import Material.Icons.Navigation
 import Svg
 import Svg.Attributes
 import Color
-import String
 import Transit
 import TransitStyle
 
@@ -148,7 +147,7 @@ hamburger address ( open, yOffset ) =
             [ div
                 [ style
                     [ "position" => "absolute"
-                    , "top" => "35px"
+                    , "top" => "-35px"
                     , "right" => "35px"
                     , "cursor" => "pointer"
                     , "zIndex" => "998"
