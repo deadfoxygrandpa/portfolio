@@ -64,7 +64,6 @@ view address model =
         []
         [ Html.Lazy.lazy2 hamburger address ( model.open, 0 )
         , if model.open then
-            --div [ style (TransitStyle.fade model.transition) ] [ menu address model ]
             menu address model
           else
             div [] []
@@ -80,14 +79,15 @@ menu address model =
         Html.div
             [ Html.Attributes.class "menu"
             , Html.Attributes.style
-                [ "position" => "fixed"
-                , "top" => "0px"
-                , "left" => "0px"
-                , "width" => "100%"
-                , "height" => "100%"
-                , "backgroundColor" => "rgba(0, 0, 0, 0.8)"
-                , "zIndex" => "997"
-                ]
+                <| [ "position" => "fixed"
+                   , "top" => "0px"
+                   , "left" => "0px"
+                   , "width" => "100%"
+                   , "height" => "100%"
+                   , "backgroundColor" => "rgba(0, 0, 0, 0.8)"
+                   , "zIndex" => "997"
+                   ]
+                ++ (TransitStyle.fade model.transition)
             ]
             [ Html.div
                 [ Html.Attributes.style
