@@ -126,11 +126,6 @@ selectors address ( current, hovered ) =
                     [ "display" => "inherit"
                     , "padding" => "15px"
                     , "cursor" => "pointer"
-                    , "backgroundColor"
-                        => if hovered == (Just category) then
-                            "#ffffff"
-                           else
-                            "inherit"
                     ]
                 , onClick address (Click category)
                 , onMouseOver address (Hover (Just category))
