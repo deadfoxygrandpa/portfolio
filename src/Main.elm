@@ -58,8 +58,7 @@ type alias Model =
 type alias Page =
     { current : Category
     , hovered : Maybe Category
-    , projects : List ( ID, Project )
-    , nextID : Int
+    , projects : List Project
     , menu : Menu.Model
     , menuOpen : Bool
     , scrollOffset : Int
@@ -77,13 +76,12 @@ model =
             Page
                 All
                 Nothing
-                [ ( 0, Project "JBL CONNECT" "APP" "JULY,2015" UX 541.4 412 )
-                , ( 1, Project "GIGI" "WEBSITE" "DEC,2015" Interface 776 412 )
-                , ( 2, Project "BREATH" "POSTER" "DEC,2011" Graphic 310 412 )
-                , ( 3, Project "FUTURE" "POSTER" "DEC,2013" Graphic 310 412 )
-                , ( 4, Project "HORIZON" "UX" "JULY,2014" Photograph 670 130 )
+                [ Project UX 541.4 412
+                , Project Interface 776 412
+                , Project Graphic 310 412
+                , Project Graphic 310 412
+                , Project Photograph 670 130
                 ]
-                5
                 Menu.init
                 False
                 0
@@ -94,9 +92,6 @@ model =
 type Action
     = Click Category
     | Hover (Maybe Category)
-    | AddProject Project
-    | RemoveProject ID
-    | SubmitNewProject
     | OpenMenu
     | CloseMenu
     | ToggleMenu
@@ -115,31 +110,6 @@ update action rootModel =
 
             Hover category ->
                 ( { rootModel | page = { model | hovered = category } }, none )
-
-            AddProject project ->
-                ( { rootModel
-                    | page =
-                        { model
-                            | projects = ( model.nextID, project ) :: model.projects
-                            , nextID = model.nextID + 1
-                        }
-                  }
-                , none
-                )
-
-            RemoveProject id ->
-                ( { rootModel | page = { model | projects = List.filter (\( pid, _ ) -> pid /= id) model.projects } }, none )
-
-            SubmitNewProject ->
-                let
-                    newProject = convertPartialProject model.menu.project
-                in
-                    case newProject of
-                        Just project ->
-                            update (AddProject project) rootModel
-
-                        Nothing ->
-                            ( rootModel, none )
 
             OpenMenu ->
                 ( { rootModel | page = { model | menuOpen = True } }, none )
@@ -166,12 +136,6 @@ update action rootModel =
                     case menuAction of
                         Menu.Close ->
                             update CloseMenu updated
-
-                        Menu.Submit ->
-                            update SubmitNewProject updated
-
-                        _ ->
-                            ( updated, none )
 
             TransitAction a ->
                 Transit.update TransitAction a rootModel
@@ -336,53 +300,13 @@ selectors address ( current, hovered ) =
 
 
 type alias Project =
-    { title : String
-    , subtitle : String
-    , date : String
-    , category : Category
+    { category : Category
     , w : Float
     , h : Float
     }
 
 
-convertPartialProject : Menu.PartialProject -> Maybe Project
-convertPartialProject project =
-    let
-        andThen = Maybe.andThen
-
-        readCategory =
-            case project.category of
-                "Interface" ->
-                    Just Interface
-
-                "UX" ->
-                    Just UX
-
-                "Graphic" ->
-                    Just Graphic
-
-                "Photograph" ->
-                    Just Photograph
-
-                _ ->
-                    Nothing
-    in
-        project.title
-            `andThen` \title ->
-                        project.subtitle
-                            `andThen` \subtitle ->
-                                        project.date
-                                            `andThen` \date ->
-                                                        readCategory
-                                                            `andThen` \category ->
-                                                                        project.w
-                                                                            `andThen` \w ->
-                                                                                        project.h
-                                                                                            `andThen` \h ->
-                                                                                                        (Just <| Project title subtitle date category w h)
-
-
-projects : Signal.Address Action -> ( Category, List ( ID, Project ) ) -> Html
+projects : Signal.Address Action -> ( Category, List Project ) -> Html
 projects address ( current, projectList ) =
     let
         seed = Random.initialSeed 12014591
@@ -398,12 +322,12 @@ projects address ( current, projectList ) =
                 (viewProject address)
                 colors
             <| List.filter
-                (\( _, project ) -> project.category == current || current == All)
+                (\project -> project.category == current || current == All)
                 projectList
 
 
-viewProject : Signal.Address Action -> ColorScheme.Color -> ( ID, Project ) -> Html
-viewProject address color ( id, project ) =
+viewProject : Signal.Address Action -> ColorScheme.Color -> Project -> Html
+viewProject address color project =
     div
         [ style
             [ "width" => (toString project.w ++ "px")
@@ -414,9 +338,8 @@ viewProject address color ( id, project ) =
             , "position" => "relative"
             , "left" => "40px"
             , "display" => "inline-block"
-            , "margin" => "11px"
+            , "margin" => "0px"
             ]
-        , onClick address (RemoveProject id)
         ]
         [ div
             [ style
@@ -425,7 +348,5 @@ viewProject address color ( id, project ) =
                 , "left" => "40px"
                 ]
             ]
-            [ h3 [] [ text <| "<" ++ project.title ++ ">" ]
-            , h4 [] [ text <| project.subtitle ++ " - " ++ project.date ]
-            ]
+            []
         ]
