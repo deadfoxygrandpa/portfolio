@@ -3,29 +3,26 @@ module Menu (..) where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Lazy
 import Effects
+import Material.Icons.Navigation
+import Svg
+import Svg.Attributes
+import Color
 import String
+import Transit
+import TransitStyle
 
 
 type Action
     = Close
-    | Update String String
-    | Submit
+    | Open
+    | Toggle
+    | TransitAction (Transit.Action Action)
 
 
 type alias Model =
-    { project : PartialProject
-    }
-
-
-type alias PartialProject =
-    { title : Maybe String
-    , subtitle : Maybe String
-    , date : Maybe String
-    , category : String
-    , w : Maybe Float
-    , h : Maybe Float
-    }
+    Transit.WithTransition { open : Bool }
 
 
 (=>) : a -> b -> ( a, b )
@@ -33,64 +30,49 @@ type alias PartialProject =
     ( a, b )
 
 
-emptyPartialProject : PartialProject
-emptyPartialProject =
-    PartialProject Nothing Nothing Nothing "" Nothing Nothing
-
-
 init : Model
 init =
-    Model emptyPartialProject
+    { open = False, transition = Transit.initial }
 
 
 update : Action -> Model -> ( Model, Effects.Effects Action )
 update action model =
     case action of
-        Update field value ->
+        Close ->
+            ( { model | open = False }, Effects.none )
+
+        Open ->
+            ( { model | open = True }, Effects.none )
+
+        Toggle ->
             let
-                partialProject = model.project
-
-                newProject =
-                    case field of
-                        "title" ->
-                            { partialProject | title = Just value }
-
-                        "subtitle" ->
-                            { partialProject | subtitle = Just value }
-
-                        "date" ->
-                            { partialProject | date = Just value }
-
-                        "category" ->
-                            { partialProject | category = value }
-
-                        "width" ->
-                            case String.toFloat value of
-                                Result.Ok f ->
-                                    { partialProject | w = Just f }
-
-                                Result.Err _ ->
-                                    { partialProject | w = Nothing }
-
-                        "height" ->
-                            case String.toFloat value of
-                                Result.Ok f ->
-                                    { partialProject | h = Just f }
-
-                                Result.Err _ ->
-                                    { partialProject | h = Nothing }
-
-                        _ ->
-                            partialProject
+                timeline =
+                    if model.open then
+                        Transit.timeline 100 Close 200
+                    else
+                        Transit.timeline 100 Open 500
             in
-                ( { model | project = newProject }, Effects.none )
+                Transit.init TransitAction timeline model
 
-        _ ->
-            ( model, Effects.none )
+        TransitAction a ->
+            Transit.update TransitAction a model
 
 
 view : Signal.Address Action -> Model -> Html
 view address model =
+    div
+        []
+        [ Html.Lazy.lazy2 hamburger address ( model.open, 0 )
+        , if model.open then
+            --div [ style (TransitStyle.fade model.transition) ] [ menu address model ]
+            menu address model
+          else
+            div [] []
+        ]
+
+
+menu : Signal.Address Action -> Model -> Html
+menu address model =
     let
         makeLink heading string ref target =
             heading [] [ Html.a [ Html.Attributes.href ref, Html.Attributes.target target ] [ text string ] ]
@@ -148,48 +130,47 @@ view address model =
             ]
 
 
-
---div
---    [ style
---        [ "position" => "fixed"
---        , "top" => "200px"
---        , "right" => "100px"
---        , "width" => "150px"
---        , "display" => "inline-block"
---        ]
---    ]
---    [ h5 [ style [ "width" => "150px" ] ] [ text "Add New Project" ]
---    , input [ on "input" targetValue (Signal.message address << Update "title") ] []
---    , input [ on "input" targetValue (Signal.message address << Update "subtitle") ] []
---    , input [ on "input" targetValue (Signal.message address << Update "date") ] []
---    , select
---        [ on "change" targetValue (Signal.message address << Update "category") ]
---        [ option [] [ text "--" ]
---        , option [] [ text "Interface" ]
---        , option [] [ text "UX" ]
---        , option [] [ text "Graphic" ]
---        , option [] [ text "Photograph" ]
---        ]
---    , input [ on "input" targetValue (Signal.message address << Update "width") ] []
---    , input [ on "input" targetValue (Signal.message address << Update "height") ] []
---    , h5
---        [ onClick address Submit
---        , style
---            [ "width" => "40px"
---            , "display" => "inline-block"
---            , "cursor" => "pointer"
---            ]
---        ]
---        [ text "Add" ]
---    , h5
---        [ onClick address Close
---        , style
---            [ "width" => "40px"
---            , "display" => "inline-block"
---            , "position" => "absolute"
---            , "right" => "0px"
---            , "cursor" => "pointer"
---            ]
---        ]
---        [ text "Close" ]
---    ]
+hamburger : Signal.Address Action -> ( Bool, Int ) -> Html
+hamburger address ( open, yOffset ) =
+    let
+        icon =
+            if open then
+                Material.Icons.Navigation.close (Color.rgb 255 255 255)
+            else
+                Material.Icons.Navigation.menu (Color.rgb 74 74 74)
+    in
+        div
+            [ style
+                [ "position" => "relative"
+                , "width" => "100%"
+                ]
+            ]
+            [ div
+                [ style
+                    [ "position" => "absolute"
+                    , "top" => "35px"
+                    , "right" => "35px"
+                    , "cursor" => "pointer"
+                    , "zIndex" => "998"
+                    , "transform" => ("translateY(" ++ toString yOffset ++ "px)")
+                    ]
+                , onClick address Toggle
+                ]
+                [ div
+                    [ style
+                        [ "position" => "absolute"
+                        , "top" => "0px"
+                        , "left" => "0px"
+                        , "width" => "50px"
+                        , "height" => "50px"
+                        , "zIndex" => "999"
+                        ]
+                    ]
+                    []
+                , Svg.svg
+                    [ Svg.Attributes.width "50px"
+                    , Svg.Attributes.height "50px"
+                    ]
+                    [ icon 50 ]
+                ]
+            ]

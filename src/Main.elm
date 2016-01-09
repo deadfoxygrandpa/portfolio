@@ -76,11 +76,13 @@ model =
             Page
                 All
                 Nothing
-                [ Project UX 541.4 412
-                , Project Interface 776 412
-                , Project Graphic 310 412
-                , Project Graphic 310 412
-                , Project Photograph 670 130
+                [ Project UX 562 412
+                , Project UX 776 412
+                , Project Interface 335 247
+                , Project Graphic 312 247
+                , Project Graphic 692 247
+                , Project Photograph 975 130
+                , Project Photograph 363 130
                 ]
                 Menu.init
                 False
@@ -92,9 +94,6 @@ model =
 type Action
     = Click Category
     | Hover (Maybe Category)
-    | OpenMenu
-    | CloseMenu
-    | ToggleMenu
     | MenuAction Menu.Action
     | TransitAction (Transit.Action Action)
     | Offset Int
@@ -111,31 +110,13 @@ update action rootModel =
             Hover category ->
                 ( { rootModel | page = { model | hovered = category } }, none )
 
-            OpenMenu ->
-                ( { rootModel | page = { model | menuOpen = True } }, none )
-
-            CloseMenu ->
-                ( { rootModel | page = { model | menuOpen = False } }, none )
-
-            ToggleMenu ->
-                let
-                    timeline =
-                        if model.menuOpen then
-                            Transit.timeline 100 CloseMenu 200
-                        else
-                            Transit.timeline 100 OpenMenu 500
-                in
-                    Transit.init TransitAction timeline rootModel
-
             MenuAction menuAction ->
                 let
                     ( newMenu, effect ) = Menu.update menuAction model.menu
 
                     updated = { rootModel | page = { model | menu = newMenu } }
                 in
-                    case menuAction of
-                        Menu.Close ->
-                            update CloseMenu updated
+                    ( updated, Effects.map MenuAction effect )
 
             TransitAction a ->
                 Transit.update TransitAction a rootModel
@@ -153,20 +134,15 @@ view address rootModel =
             [ style
                 [ "color" => "#50e3c2"
                 , "fontFamily" => "Raleway,sans-serif"
-                , "maxWidth" => "75em"
+                , "maxWidth" => "90em"
                 , "margin" => "auto"
                 ]
             ]
             <| [ logo
-               , lazy2 hamburger address ( model.menuOpen, model.scrollOffset )
+               , Menu.view (Signal.forwardTo address MenuAction) model.menu
                , title'
                , lazy2 selectors address ( model.current, model.hovered )
                , lazy2 projects address ( model.current, model.projects )
-               , div [ style (TransitStyle.fade rootModel.transition) ]
-                    <| if model.menuOpen then
-                        [ Menu.view (Signal.forwardTo address MenuAction) model.menu ]
-                       else
-                        []
                ]
 
 
@@ -201,52 +177,6 @@ logo =
                 ]
             ]
         ]
-
-
-hamburger : Signal.Address Action -> ( Bool, Int ) -> Html
-hamburger address ( open, yOffset ) =
-    let
-        icon =
-            if open then
-                Material.Icons.Navigation.close (Color.rgb 255 255 255)
-            else
-                Material.Icons.Navigation.menu (Color.rgb 74 74 74)
-    in
-        div
-            [ style
-                [ "position" => "relative"
-                , "width" => "100%"
-                ]
-            ]
-            [ div
-                [ style
-                    [ "position" => "absolute"
-                    , "top" => "35px"
-                    , "right" => "35px"
-                    , "cursor" => "pointer"
-                    , "zIndex" => "998"
-                    , "transform" => ("translateY(" ++ toString yOffset ++ "px)")
-                    ]
-                , onClick address ToggleMenu
-                ]
-                [ div
-                    [ style
-                        [ "position" => "absolute"
-                        , "top" => "0px"
-                        , "left" => "0px"
-                        , "width" => "50px"
-                        , "height" => "50px"
-                        , "zIndex" => "999"
-                        ]
-                    ]
-                    []
-                , Svg.svg
-                    [ Svg.Attributes.width "50px"
-                    , Svg.Attributes.height "50px"
-                    ]
-                    [ icon 50 ]
-                ]
-            ]
 
 
 title' : Html
