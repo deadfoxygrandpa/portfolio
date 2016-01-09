@@ -64,7 +64,7 @@ model =
         , Project Photograph 975 130
         , Project Photograph 363 130
         ]
-        Header.init
+        (Header.init "PROJECTS" ColorScheme.highlight1)
         0
 
 

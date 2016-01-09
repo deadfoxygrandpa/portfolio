@@ -16,16 +16,19 @@ import Menu
 
 
 type alias Model =
-    { menu : Menu.Model }
+    { title : String
+    , color : ColorScheme.Color
+    , menu : Menu.Model
+    }
 
 
 type Action
     = MenuAction Menu.Action
 
 
-init : Model
-init =
-    { menu = Menu.init }
+init : String -> ColorScheme.Color -> Model
+init title color =
+    Model title color Menu.init
 
 
 view : Signal.Address Action -> Model -> Html
@@ -33,7 +36,7 @@ view address model =
     div
         []
         [ logo
-        , title' highlight1
+        , title' model.title model.color
         , Menu.view (Signal.forwardTo address MenuAction) model.menu
         ]
 
@@ -77,8 +80,8 @@ logo =
         ]
 
 
-title' : ColorScheme.Color -> Html
-title' color =
+title' : String -> ColorScheme.Color -> Html
+title' title color =
     h1
         [ style
             [ "position" => "relative"
@@ -87,4 +90,4 @@ title' color =
             , "color" => color.hex
             ]
         ]
-        [ text "PROJECTS" ]
+        [ text title ]
