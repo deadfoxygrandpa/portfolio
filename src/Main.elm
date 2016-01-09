@@ -52,10 +52,6 @@ type Category
 
 
 type alias Model =
-    Transit.WithTransition { page : Page }
-
-
-type alias Page =
     { current : Category
     , hovered : Maybe Category
     , projects : List Project
@@ -71,79 +67,63 @@ type alias ID =
 
 model : Model
 model =
-    let
-        page =
-            Page
-                All
-                Nothing
-                [ Project UX 562 412
-                , Project UX 776 412
-                , Project Interface 335 247
-                , Project Graphic 312 247
-                , Project Graphic 692 247
-                , Project Photograph 975 130
-                , Project Photograph 363 130
-                ]
-                Menu.init
-                False
-                0
-    in
-        { page = page, transition = Transit.initial }
+    Model
+        All
+        Nothing
+        [ Project UX 562 412
+        , Project UX 776 412
+        , Project Interface 335 247
+        , Project Graphic 312 247
+        , Project Graphic 692 247
+        , Project Photograph 975 130
+        , Project Photograph 363 130
+        ]
+        Menu.init
+        False
+        0
 
 
 type Action
     = Click Category
     | Hover (Maybe Category)
     | MenuAction Menu.Action
-    | TransitAction (Transit.Action Action)
     | Offset Int
 
 
-update action rootModel =
-    let
-        model = rootModel.page
-    in
-        case action of
-            Click category ->
-                ( { rootModel | page = { model | current = category, hovered = Nothing } }, none )
+update action model =
+    case action of
+        Click category ->
+            ( { model | current = category, hovered = Nothing }, none )
 
-            Hover category ->
-                ( { rootModel | page = { model | hovered = category } }, none )
+        Hover category ->
+            ( { model | hovered = category }, none )
 
-            MenuAction menuAction ->
-                let
-                    ( newMenu, effect ) = Menu.update menuAction model.menu
+        MenuAction menuAction ->
+            let
+                ( newMenu, effect ) = Menu.update menuAction model.menu
+            in
+                ( { model | menu = newMenu }, Effects.map MenuAction effect )
 
-                    updated = { rootModel | page = { model | menu = newMenu } }
-                in
-                    ( updated, Effects.map MenuAction effect )
-
-            TransitAction a ->
-                Transit.update TransitAction a rootModel
-
-            Offset offset ->
-                ( { rootModel | page = { model | scrollOffset = offset } }, none )
+        Offset offset ->
+            ( { model | scrollOffset = offset }, none )
 
 
 view : Signal.Address Action -> Model -> Html
-view address rootModel =
-    let
-        model = rootModel.page
-    in
-        div
-            [ style
-                [ "color" => "#50e3c2"
-                , "fontFamily" => "Raleway,sans-serif"
-                , "maxWidth" => "90em"
-                , "margin" => "auto"
-                ]
+view address model =
+    div
+        [ style
+            [ "color" => "#50e3c2"
+            , "fontFamily" => "Raleway,sans-serif"
+            , "maxWidth" => "90em"
+            , "margin" => "auto"
             ]
-            <| [ logo
-               , Menu.view (Signal.forwardTo address MenuAction) model.menu
-               , title'
-               , lazy2 selectors address ( model.current, model.hovered )
-               , lazy2 projects address ( model.current, model.projects )
-               ]
+        ]
+        <| [ logo
+           , Menu.view (Signal.forwardTo address MenuAction) model.menu
+           , title'
+           , lazy2 selectors address ( model.current, model.hovered )
+           , lazy2 projects address ( model.current, model.projects )
+           ]
 
 
 (=>) : a -> b -> ( a, b )
