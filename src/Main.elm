@@ -136,6 +136,7 @@ logo =
                 [ "position" => "absolute"
                 , "top" => "46px"
                 , "left" => "51px"
+                , "zIndex" => "996"
                 ]
             , Html.Attributes.href "#home"
             ]
