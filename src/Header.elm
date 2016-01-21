@@ -8,6 +8,7 @@ import Svg.Attributes
 import SvgIcon
 import ColorScheme exposing (..)
 import Menu
+import Graphics.Collage as Collage
 
 
 (=>) : a -> b -> ( a, b )
@@ -91,3 +92,7 @@ title' title color =
             ]
         ]
         [ text title ]
+
+
+sub =
+    Collage.collage 300 300 []

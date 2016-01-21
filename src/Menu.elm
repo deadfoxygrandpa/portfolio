@@ -11,6 +11,8 @@ import Svg.Attributes
 import Color
 import Transit
 import TransitStyle
+import TransitRouter
+import Json.Decode as Json
 
 
 type Action
@@ -27,6 +29,17 @@ type alias Model =
 (=>) : a -> b -> ( a, b )
 (=>) a b =
     ( a, b )
+
+
+clickTo : String -> List Attribute
+clickTo path =
+    [ href path
+    , onWithOptions
+        "click"
+        { stopPropagation = True, preventDefault = True }
+        Json.value
+        (\_ -> Signal.message TransitRouter.pushPathAddress path)
+    ]
 
 
 init : Model
@@ -73,7 +86,8 @@ menu : Signal.Address Action -> Model -> Html
 menu address model =
     let
         makeLink heading string ref target =
-            heading [] [ Html.a [ Html.Attributes.href ref, Html.Attributes.target target ] [ text string ] ]
+            --heading [] [ Html.a [ Html.Attributes.href ref, Html.Attributes.target target ] [ text string ] ]
+            heading [] [ Html.a (clickTo ref) [ text string ] ]
     in
         Html.div
             [ Html.Attributes.class "menu"
