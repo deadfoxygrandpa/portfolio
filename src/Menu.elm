@@ -9,9 +9,6 @@ import Material.Icons.Navigation
 import Svg
 import Svg.Attributes
 import Color
-import Transit
-import TransitStyle
-import TransitRouter
 import Json.Decode as Json
 
 
@@ -19,11 +16,10 @@ type Action
     = Close
     | Open
     | Toggle
-    | TransitAction (Transit.Action Action)
 
 
 type alias Model =
-    Transit.WithTransition { open : Bool }
+    { open : Bool }
 
 
 (=>) : a -> b -> ( a, b )
@@ -34,17 +30,12 @@ type alias Model =
 clickTo : String -> List Attribute
 clickTo path =
     [ href path
-    , onWithOptions
-        "click"
-        { stopPropagation = True, preventDefault = True }
-        Json.value
-        (\_ -> Signal.message TransitRouter.pushPathAddress path)
     ]
 
 
 init : Model
 init =
-    { open = False, transition = Transit.initial }
+    { open = False }
 
 
 update : Action -> Model -> ( Model, Effects.Effects Action )
@@ -57,17 +48,7 @@ update action model =
             ( { model | open = True }, Effects.none )
 
         Toggle ->
-            let
-                timeline =
-                    if model.open then
-                        Transit.timeline 100 Close 200
-                    else
-                        Transit.timeline 100 Open 500
-            in
-                Transit.init TransitAction timeline model
-
-        TransitAction a ->
-            Transit.update TransitAction a model
+            ( { model | open = not model.open }, Effects.none )
 
 
 view : Signal.Address Action -> Model -> Html
@@ -86,29 +67,23 @@ menu : Signal.Address Action -> Model -> Html
 menu address model =
     let
         makeLink heading string ref target =
-            --heading [] [ Html.a [ Html.Attributes.href ref, Html.Attributes.target target ] [ text string ] ]
             heading [] [ Html.a (clickTo ref) [ text string ] ]
     in
         Html.div
             [ Html.Attributes.class "menu"
-            , Html.Attributes.style
-                <| [ "position" => "fixed"
-                   , "top" => "0px"
-                   , "left" => "0px"
-                   , "width" => "100%"
-                   , "height" => "100%"
-                   , "backgroundColor" => "rgba(0, 0, 0, 0.8)"
-                   , "zIndex" => "997"
-                   ]
-                ++ (TransitStyle.fade model.transition)
             ]
             [ Html.div
-                [ Html.Attributes.style
-                    [ "position" => "fixed"
-                    , "top" => "50%"
-                    , "left" => "50%"
-                    , "transform" => "translate(-50%, -60%)"
+                [ Html.Attributes.classList
+                    [ "flex-container" => True
+                    , "centered-column" => True
+                    , "screen-center" => True
                     ]
+                  --, Html.Attributes.style
+                  --    [ "position" => "fixed"
+                  --    , "top" => "50%"
+                  --    , "left" => "50%"
+                  --    , "transform" => "translate(-50%, -60%)"
+                  --    ]
                 ]
                 [ makeLink Html.h1 "HOME" "#home" ""
                 , makeLink Html.h1 "PROJECTS" "#projects" ""
@@ -153,37 +128,12 @@ hamburger address ( open, yOffset ) =
                 Material.Icons.Navigation.menu (Color.rgb 74 74 74)
     in
         div
-            [ style
-                [ "position" => "relative"
-                , "width" => "100%"
-                ]
+            [ Html.Attributes.class "cursor"
+            , onClick address Toggle
             ]
-            [ div
-                [ style
-                    [ "position" => "absolute"
-                    , "top" => "-45px"
-                    , "right" => "35px"
-                    , "cursor" => "pointer"
-                    , "zIndex" => "998"
-                    , "transform" => ("translateY(" ++ toString yOffset ++ "px)")
-                    ]
-                , onClick address Toggle
+            [ Svg.svg
+                [ Svg.Attributes.width "50px"
+                , Svg.Attributes.height "50px"
                 ]
-                [ div
-                    [ style
-                        [ "position" => "absolute"
-                        , "top" => "0px"
-                        , "left" => "0px"
-                        , "width" => "50px"
-                        , "height" => "50px"
-                        , "zIndex" => "999"
-                        ]
-                    ]
-                    []
-                , Svg.svg
-                    [ Svg.Attributes.width "50px"
-                    , Svg.Attributes.height "50px"
-                    ]
-                    [ icon 50 ]
-                ]
+                [ icon 50 ]
             ]
