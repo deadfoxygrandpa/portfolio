@@ -35,6 +35,10 @@ h2.selected {
   font-weight: 400;
 }
 
+h2.hovered {
+  color: #50e3c2;
+}
+
 .menu {
   position: fixed;
   top: 0px;
@@ -108,6 +112,13 @@ a:hover {
 .selector {
   padding: 15px;
   cursor: pointer;
+}
+
+.hoverproject {
+  background-color: #50e3c2;
+  background-image: url("assets/page-1.png");
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .bar {

@@ -18,9 +18,14 @@ import String
 type alias Model =
   { header : Header.Model
   , current : Category
-  , hovered : Maybe Category
-  , projects : List Project
+  , hoveredCategory : Maybe Category
+  , hoveredProject : Maybe ID
+  , projects : List ( ID, Project )
   }
+
+
+type alias ID =
+  Int
 
 
 type Category
@@ -45,14 +50,15 @@ init =
     (Header.init "PROJECTS")
     All
     Nothing
-    [ Project "screen-shot-2016-01-09-at-103012-p-m.png" UX 535 412
-    , Project "1-intro.png" UX 543 412
-    , Project "screen-shot-2015-10-02-at-112628-am.png" Interface 712 387
-    , Project "screen-shot-2016-01-09-at-103618-p-m.png" Graphic 365 387
-    , Project "trees-breath.png" Graphic 221 301
-    , Project "2.png" Photograph 221 301
-    , Project "untitled-1.png" Photograph 221 301
-    , Project "m-2-b.png" Graphic 415 301
+    Nothing
+    [ ( 0, Project "screen-shot-2016-01-09-at-103012-p-m.png" UX 535 412 )
+    , ( 1, Project "1-intro.png" UX 543 412 )
+    , ( 2, Project "screen-shot-2015-10-02-at-112628-am.png" Interface 712 387 )
+    , ( 3, Project "screen-shot-2016-01-09-at-103618-p-m.png" Graphic 365 387 )
+    , ( 4, Project "trees-breath.png" Graphic 221 301 )
+    , ( 5, Project "2.png" Photograph 221 301 )
+    , ( 6, Project "untitled-1.png" Photograph 221 301 )
+    , ( 7, Project "m-2-b.png" Graphic 415 301 )
     ]
 
 
@@ -62,7 +68,8 @@ init =
 
 type Action
   = Click Category
-  | Hover (Maybe Category)
+  | HoverCategory (Maybe Category)
+  | HoverProject (Maybe ID)
   | HeaderAction Header.Action
 
 
@@ -70,10 +77,13 @@ update : Action -> Model -> ( Model, Effects.Effects Action )
 update action model =
   case action of
     Click category ->
-      ( { model | current = category, hovered = Nothing }, Effects.none )
+      ( { model | current = category, hoveredCategory = Nothing }, Effects.none )
 
-    Hover category ->
-      ( { model | hovered = category }, Effects.none )
+    HoverCategory category ->
+      ( { model | hoveredCategory = category }, Effects.none )
+
+    HoverProject id ->
+      ( { model | hoveredProject = id }, Effects.none )
 
     HeaderAction headerAction ->
       let
@@ -93,8 +103,8 @@ view address model =
     []
     [ Header.view (Signal.forwardTo address HeaderAction) model.header
     , bar
-    , Html.Lazy.lazy2 selectors address ( model.current, model.hovered )
-    , Html.Lazy.lazy2 projects address ( model.current, model.projects )
+    , Html.Lazy.lazy2 selectors address ( model.current, model.hoveredCategory )
+    , Html.Lazy.lazy2 projects address ( model.current, model.projects, model.hoveredProject )
     ]
 
 
@@ -120,7 +130,7 @@ spacer size =
 
 
 selectors : Signal.Address Action -> ( Category, Maybe Category ) -> Html
-selectors address ( current, hovered ) =
+selectors address ( current, hoveredCategory ) =
   let
     styler : Category -> Html
     styler category =
@@ -128,10 +138,11 @@ selectors address ( current, hovered ) =
         [ Html.Attributes.classList
             [ "selected" => (category == current)
             , "selector" => True
+            , "hovered" => (Just category == hoveredCategory)
             ]
         , Html.Events.onClick address (Click category)
-        , Html.Events.onMouseOver address (Hover (Just category))
-        , Html.Events.onMouseLeave address (Hover Nothing)
+        , Html.Events.onMouseOver address (HoverCategory (Just category))
+        , Html.Events.onMouseLeave address (HoverCategory Nothing)
         ]
         [ Html.text (category |> toString >> String.toUpper) ]
   in
@@ -149,35 +160,43 @@ selectors address ( current, hovered ) =
       ]
 
 
-projects : Signal.Address Action -> ( Category, List Project ) -> Html
-projects address ( current, projectList ) =
-  let
-    seed =
-      Random.initialSeed 12014591
-
-    ( colors, _ ) =
-      Random.generate (Random.list 100 ColorScheme.randomColor) seed
-  in
-    Html.div
-      [ Html.Attributes.class "flex-container" ]
-      <| List.map2
-          (viewProject address)
-          colors
-      <| List.filter
-          (\project -> project.category == current || current == All)
-          projectList
+projects : Signal.Address Action -> ( Category, List ( ID, Project ), Maybe ID ) -> Html
+projects address ( current, projectList, hoveredProject ) =
+  Html.div
+    [ Html.Attributes.class "flex-container" ]
+    <| List.map
+        (viewProject address hoveredProject)
+    <| List.filter
+        (\( id, project ) -> project.category == current || current == All)
+        projectList
 
 
-viewProject : Signal.Address Action -> ColorScheme.Color -> Project -> Html
-viewProject address color project =
+viewProject : Signal.Address Action -> Maybe ID -> ( ID, Project ) -> Html
+viewProject address hoveredProject ( id, project ) =
   Html.div
     []
-    [ Html.img
+    [ Html.div
         [ Html.Attributes.style
             [ "width" => (toString project.w ++ "px")
             , "height" => (toString project.h ++ "px")
+            , "background" => ("url(" ++ "assets/" ++ project.image ++ ") no-repeat")
             ]
-        , Html.Attributes.src ("assets/" ++ project.image)
+        , Html.Events.onMouseOver address (HoverProject (Just id))
+        , Html.Events.onMouseLeave address (HoverProject Nothing)
         ]
-        []
+        [ Html.div
+            [ Html.Attributes.style
+                [ "width" => (toString project.w ++ "px")
+                , "height" => (toString project.h ++ "px")
+                , "opacity"
+                    => (if hoveredProject == Just id then
+                          "0.8"
+                        else
+                          "0.0"
+                       )
+                ]
+            , Html.Attributes.class "hoverproject"
+            ]
+            []
+        ]
     ]
