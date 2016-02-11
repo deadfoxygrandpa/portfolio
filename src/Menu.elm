@@ -78,12 +78,6 @@ menu address model =
               , "centered-column" => True
               , "screen-center" => True
               ]
-            --, Html.Attributes.style
-            --    [ "position" => "fixed"
-            --    , "top" => "50%"
-            --    , "left" => "50%"
-            --    , "transform" => "translate(-50%, -60%)"
-            --    ]
           ]
           [ makeLink Html.h1 "HOME" "#home" ""
           , makeLink Html.h1 "PROJECTS" "#projects" ""

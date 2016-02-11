@@ -147,6 +147,22 @@ footer {
   height: 150px;
   background: #4A4A4A;
   color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin-top: 70px;
+}
+
+footer span {
+  opacity: 0.5;
+}
+
+footer h2 {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0px 10px;
 }
 
 .menutoggle {

@@ -118,9 +118,28 @@ view address model =
 
 
 footer =
-  Html.footer
-    []
-    [ Html.text "welp," ]
+  let
+    makeLink string ref =
+      Html.h2
+        []
+        [ Html.a [ Html.Attributes.href ref ] [ Html.text string ] ]
+  in
+    Html.footer
+      []
+      [ Html.span [] [ Html.text "Copyright Gigi 2016 © All Rights Reserved." ]
+      , Html.span [] [ Html.text "------------------------------------------------------" ]
+      , Html.div
+          [ Html.Attributes.class "flex-container" ]
+          [ makeLink "Facebook" "https://www.facebook.com/profile.php?id=100002934303779"
+          , Html.h2 [] [ text "|" ]
+          , makeLink "Sina Weibo" "http://www.weibo.com/u/1829414713?wvr=5&wvr=5&lf=reg"
+          , Html.h2 [] [ text "|" ]
+          , makeLink "Instagram" "https://www.instagram.com/gigiguo80/"
+          , Html.h2 [] [ text "|" ]
+          , makeLink "Behance" "https://www.behance.net/GigiGUO"
+          ]
+      , Html.span [] [ Html.text "Made by Alex" ]
+      ]
 
 
 bar : Html
