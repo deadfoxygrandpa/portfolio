@@ -67,7 +67,7 @@ menu : Signal.Address Action -> Model -> Html
 menu address model =
   let
     makeLink heading string ref target =
-      heading [] [ Html.a (clickTo ref) [ text string ] ]
+      heading [ Html.Events.onClick address Close ] [ Html.a (clickTo ref) [ text string ] ]
   in
     Html.div
       [ Html.Attributes.class "menu"

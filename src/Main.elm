@@ -11,7 +11,7 @@ import Random
 import StartApp
 import Header
 import ColorScheme
-import Scroll
+import Hop
 import AboutPage
 import Graphics.Element as E
 import ProjectPage
@@ -20,7 +20,7 @@ import AboutPage
 
 app : StartApp.App Model
 app =
-  StartApp.start { init = init, view = view, update = update, inputs = [] }
+  StartApp.start { init = init, view = view, update = update, inputs = [ router.signal ] }
 
 
 main : Signal Html
@@ -38,23 +38,26 @@ port title =
   "Gg"
 
 
-type Page
-  = Projects ProjectPage.Model
-  | AboutMe AboutPage.Model
+port hop : Task.Task () ()
+port hop =
+  router.run
 
 
 type alias Model =
-  { page : Page
+  { projects : ProjectPage.Model
+  , about : AboutPage.Model
+  , routerPayload : Hop.Payload
+  , currentView : String
   }
 
 
 model : Model
 model =
-  let
-    page =
-      Projects ProjectPage.init
-  in
-    { page = page }
+  { projects = ProjectPage.init
+  , about = AboutPage.init
+  , routerPayload = router.payload
+  , currentView = ""
+  }
 
 
 init : ( Model, Effects Action )
@@ -65,39 +68,56 @@ init =
 type Action
   = ProjectsAction ProjectPage.Action
   | AboutMeAction AboutPage.Action
+  | HopAction Hop.Action
+  | ShowNotFound Hop.Payload
+  | ShowProjectsPage Hop.Payload
+  | ShowAboutMePage Hop.Payload
 
 
-updatePage : Page -> Model -> Model
-updatePage page model =
-  { model | page = page }
+routes : List ( String, Hop.Payload -> Action )
+routes =
+  [ "/" => ShowProjectsPage
+  , "projects" => ShowProjectsPage
+  , "about" => ShowAboutMePage
+  ]
+
+
+router : Hop.Router Action
+router =
+  Hop.new
+    { routes = routes
+    , notFoundAction = ShowNotFound
+    }
 
 
 update : Action -> Model -> ( Model, Effects.Effects Action )
 update action model =
   case action of
     ProjectsAction projectsAction ->
-      case model.page of
-        AboutMe _ ->
-          ( model, Effects.none )
-
-        Projects page ->
-          let
-            ( newPage, fx ) =
-              ProjectPage.update projectsAction page
-          in
-            ( { model | page = Projects newPage }, Effects.map ProjectsAction fx )
+      let
+        ( newPage, fx ) =
+          ProjectPage.update projectsAction model.projects
+      in
+        ( { model | projects = newPage }, Effects.map ProjectsAction fx )
 
     AboutMeAction aboutAction ->
-      case model.page of
-        Projects _ ->
-          ( model, Effects.none )
+      let
+        ( newPage, fx ) =
+          AboutPage.update aboutAction model.about
+      in
+        ( { model | about = newPage }, Effects.map AboutMeAction fx )
 
-        AboutMe page ->
-          let
-            ( newPage, fx ) =
-              AboutPage.update aboutAction page
-          in
-            ( { model | page = AboutMe newPage }, Effects.map AboutMeAction fx )
+    HopAction hopAction ->
+      ( model, Effects.none )
+
+    ShowNotFound payload ->
+      ( { model | routerPayload = payload }, Effects.none )
+
+    ShowProjectsPage payload ->
+      ( { model | currentView = "projects", routerPayload = payload }, Effects.none )
+
+    ShowAboutMePage payload ->
+      ( { model | currentView = "about", routerPayload = payload }, Effects.none )
 
 
 view : Signal.Address Action -> Model -> Html
@@ -106,12 +126,15 @@ view address model =
     []
     [ Html.div
         [ Html.Attributes.class "content" ]
-        [ case model.page of
-            Projects page ->
-              ProjectPage.view (Signal.forwardTo address ProjectsAction) page
+        [ case Debug.log "view" model.currentView of
+            "projects" ->
+              ProjectPage.view (Signal.forwardTo address ProjectsAction) model.projects
 
-            AboutMe page ->
-              AboutPage.view (Signal.forwardTo address AboutMeAction) page
+            "about" ->
+              AboutPage.view (Signal.forwardTo address AboutMeAction) model.about
+
+            _ ->
+              ProjectPage.view (Signal.forwardTo address ProjectsAction) model.projects
         ]
     , footer
     ]
