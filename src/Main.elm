@@ -16,6 +16,7 @@ import AboutPage
 import Graphics.Element as E
 import ProjectPage
 import AboutPage
+import ContactPage
 
 
 app : StartApp.App Model
@@ -46,6 +47,7 @@ port hop =
 type alias Model =
   { projects : ProjectPage.Model
   , about : AboutPage.Model
+  , contact : ContactPage.Model
   , routerPayload : Hop.Payload
   , currentView : String
   }
@@ -55,6 +57,7 @@ model : Model
 model =
   { projects = ProjectPage.init
   , about = AboutPage.init
+  , contact = ContactPage.init
   , routerPayload = router.payload
   , currentView = ""
   }
@@ -68,17 +71,21 @@ init =
 type Action
   = ProjectsAction ProjectPage.Action
   | AboutMeAction AboutPage.Action
+  | ContactAction ContactPage.Action
   | HopAction Hop.Action
   | ShowNotFound Hop.Payload
   | ShowProjectsPage Hop.Payload
   | ShowAboutMePage Hop.Payload
+  | ShowContactPage Hop.Payload
 
 
 routes : List ( String, Hop.Payload -> Action )
 routes =
   [ "/" => ShowProjectsPage
+  , "home" => ShowProjectsPage
   , "projects" => ShowProjectsPage
   , "about" => ShowAboutMePage
+  , "contact" => ShowContactPage
   ]
 
 
@@ -93,19 +100,26 @@ router =
 update : Action -> Model -> ( Model, Effects.Effects Action )
 update action model =
   case action of
-    ProjectsAction projectsAction ->
+    ProjectsAction action ->
       let
         ( newPage, fx ) =
-          ProjectPage.update projectsAction model.projects
+          ProjectPage.update action model.projects
       in
         ( { model | projects = newPage }, Effects.map ProjectsAction fx )
 
-    AboutMeAction aboutAction ->
+    AboutMeAction action ->
       let
         ( newPage, fx ) =
-          AboutPage.update aboutAction model.about
+          AboutPage.update action model.about
       in
         ( { model | about = newPage }, Effects.map AboutMeAction fx )
+
+    ContactAction action ->
+      let
+        ( newPage, fx ) =
+          ContactPage.update action model.about
+      in
+        ( { model | contact = newPage }, Effects.map ContactAction fx )
 
     HopAction hopAction ->
       ( model, Effects.none )
@@ -118,6 +132,9 @@ update action model =
 
     ShowAboutMePage payload ->
       ( { model | currentView = "about", routerPayload = payload }, Effects.none )
+
+    ShowContactPage payload ->
+      ( { model | currentView = "contact", routerPayload = payload }, Effects.none )
 
 
 view : Signal.Address Action -> Model -> Html
@@ -132,6 +149,9 @@ view address model =
 
             "about" ->
               AboutPage.view (Signal.forwardTo address AboutMeAction) model.about
+
+            "contact" ->
+              ContactPage.view (Signal.forwardTo address ContactAction) model.contact
 
             _ ->
               ProjectPage.view (Signal.forwardTo address ProjectsAction) model.projects
