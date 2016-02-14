@@ -126,6 +126,7 @@ a:hover {
   height: 2px;
   background: #000000;
   opacity: 0.1;
+  margin-top: -1em;
 }
 
 .content {
