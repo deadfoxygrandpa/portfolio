@@ -60,68 +60,73 @@ view address model =
         ]
         []
     , Header.view (Signal.forwardTo address HeaderAction) model.header
-    , Html.div
-        [ Html.Attributes.style
-            [ "width" => "1100px"
+    , content
+    ]
+
+
+content : Html.Html
+content =
+  Html.div
+    [ Html.Attributes.style
+        [ "width" => "1100px"
+        , "position" => "relative"
+        , "left" => "50%"
+        , "transform" => "translateX(-50%)"
+        ]
+    ]
+    [ bar
+    , spacer "2.5em"
+    , Html.img
+        [ Html.Attributes.src "assets/contact.png"
+        , Html.Attributes.style
+            [ "width" => "150px"
+            , "height" => "94px"
             , "position" => "relative"
             , "left" => "50%"
             , "transform" => "translateX(-50%)"
             ]
         ]
-        [ bar
-        , spacer "2.5em"
-        , Html.img
-            [ Html.Attributes.src "assets/contact.png"
-            , Html.Attributes.style
-                [ "width" => "150px"
-                , "height" => "94px"
-                , "position" => "relative"
-                , "left" => "50%"
-                , "transform" => "translateX(-50%)"
-                ]
+        []
+    , Html.h1
+        [ Html.Attributes.style
+            [ "textAlign" => "center"
+            , "marginTop" => "0px"
+            , "fontSize" => "2.5em"
             ]
+        ]
+        [ Html.text "Get in touch" ]
+    , Html.div
+        [ Html.Attributes.class "flex-container"
+        , Html.Attributes.style
+            [ "flexDirection" => "column"
+            , "alignItems" => "center"
+            , "width" => "75%"
+            , "position" => "relative"
+            , "left" => "50%"
+            , "transform" => "translateX(-50%)"
+            ]
+        ]
+        [ Html.span
+            [ Html.Attributes.class "contact" ]
+            [ Html.text "Your name" ]
+        , Html.input
+            [ Html.Attributes.placeholder "Enter your name" ]
             []
-        , Html.h1
-            [ Html.Attributes.style
-                [ "textAlign" => "center"
-                , "marginTop" => "0px"
-                , "fontSize" => "2.5em"
-                ]
-            ]
-            [ Html.text "Get in touch" ]
-        , Html.div
-            [ Html.Attributes.class "flex-container"
-            , Html.Attributes.style
-                [ "flexDirection" => "column"
-                , "alignItems" => "center"
-                , "width" => "75%"
-                , "position" => "relative"
-                , "left" => "50%"
-                , "transform" => "translateX(-50%)"
-                ]
-            ]
-            [ Html.span
-                [ Html.Attributes.class "contact" ]
-                [ Html.text "Your name" ]
-            , Html.input
-                [ Html.Attributes.placeholder "Enter your name" ]
-                []
-            , Html.span
-                [ Html.Attributes.class "contact" ]
-                [ Html.text "Your contact email" ]
-            , Html.input
-                [ Html.Attributes.placeholder "Enter your email address" ]
-                []
-            , Html.span
-                [ Html.Attributes.class "contact" ]
-                [ Html.text "Your email will deliver straight away to my inbox" ]
-            , Html.textarea
-                [ Html.Attributes.placeholder "Enter your message" ]
-                []
-            , Html.button
-                []
-                [ Html.text "SEND" ]
-            ]
+        , Html.span
+            [ Html.Attributes.class "contact" ]
+            [ Html.text "Your contact email" ]
+        , Html.input
+            [ Html.Attributes.placeholder "Enter your email address" ]
+            []
+        , Html.span
+            [ Html.Attributes.class "contact" ]
+            [ Html.text "Your email will deliver straight away to my inbox" ]
+        , Html.textarea
+            [ Html.Attributes.placeholder "Enter your message" ]
+            []
+        , Html.button
+            []
+            [ Html.text "SEND" ]
         ]
     ]
 
