@@ -53,19 +53,24 @@ type alias Model =
   }
 
 
-model : Model
-model =
-  { projects = ProjectPage.init
-  , about = AboutPage.init
-  , contact = ContactPage.init
-  , routerPayload = router.payload
-  , currentView = ""
-  }
-
-
 init : ( Model, Effects Action )
 init =
-  ( model, Effects.none )
+  let
+    ( projects, projectsFx ) =
+      ProjectPage.init
+
+    projectsFx' =
+      Effects.map ProjectsAction projectsFx
+
+    model =
+      { projects = projects
+      , about = AboutPage.init
+      , contact = ContactPage.init
+      , routerPayload = router.payload
+      , currentView = ""
+      }
+  in
+    ( model, projectsFx' )
 
 
 type Action

@@ -10,6 +10,8 @@ import Header
 import ColorScheme
 import Random
 import String
+import Json.Decode
+import ImageLoad
 
 
 -- Model
@@ -21,6 +23,7 @@ type alias Model =
   , hoveredCategory : Maybe Category
   , hoveredProject : Maybe ID
   , projects : List ( ID, Project )
+  , loading : List String
   }
 
 
@@ -44,22 +47,33 @@ type alias Project =
   }
 
 
-init : Model
+init : ( Model, Effects.Effects Action )
 init =
-  Model
-    (Header.init "PROJECTS")
-    All
-    Nothing
-    Nothing
-    [ ( 0, Project "screen-shot-2016-01-09-at-103012-p-m.png" UX 535 412 )
-    , ( 1, Project "1-intro.png" UX 543 412 )
-    , ( 2, Project "screen-shot-2015-10-02-at-112628-am.png" Interface 712 387 )
-    , ( 3, Project "screen-shot-2016-01-09-at-103618-p-m.png" Graphic 365 387 )
-    , ( 4, Project "trees-breath.png" Graphic 221 301 )
-    , ( 5, Project "2.png" Photograph 221 301 )
-    , ( 6, Project "untitled-1.png" Photograph 221 301 )
-    , ( 7, Project "m-2-b.png" Graphic 415 301 )
-    ]
+  let
+    projects =
+      [ Project "screen-shot-2016-01-09-at-103012-p-m.png" UX 535 412
+      , Project "1-intro.png" UX 543 412
+      , Project "screen-shot-2015-10-02-at-112628-am.png" Interface 712 387
+      , Project "screen-shot-2016-01-09-at-103618-p-m.png" Graphic 365 387
+      , Project "trees-breath.png" Graphic 221 301
+      , Project "2.png" Photograph 221 301
+      , Project "untitled-1.png" Photograph 221 301
+      , Project "m-2-b.png" Graphic 415 301
+      ]
+
+    images =
+      List.map .image projects
+
+    model =
+      { header = (Header.init "PROJECTS")
+      , current = All
+      , hoveredCategory = Nothing
+      , hoveredProject = Nothing
+      , projects = List.indexedMap (,) projects
+      , loading = images
+      }
+  in
+    ( model, Effects.tick (always LoadImage) )
 
 
 
@@ -71,6 +85,7 @@ type Action
   | HoverCategory (Maybe Category)
   | HoverProject (Maybe ID)
   | HeaderAction Header.Action
+  | LoadImage
 
 
 update : Action -> Model -> ( Model, Effects.Effects Action )
@@ -92,6 +107,26 @@ update action model =
       in
         ( { model | header = newHeader }, Effects.map HeaderAction fx )
 
+    LoadImage ->
+      let
+        fx =
+          List.head model.loading
+            |> Maybe.map loadImage
+            |> Maybe.withDefault Effects.none
+
+        loading =
+          List.tail model.loading |> Maybe.withDefault []
+      in
+        ( { model | loading = loading }, fx )
+
+
+loadImage : String -> Effects.Effects Action
+loadImage image =
+  ImageLoad.load ("assets/" ++ image) (Json.Decode.succeed image)
+    `Task.onError` always (Task.succeed image)
+    |> Task.map (always LoadImage)
+    |> Effects.task
+
 
 
 -- View
@@ -99,13 +134,18 @@ update action model =
 
 view : Signal.Address Action -> Model -> Html.Html
 view address model =
-  Html.div
-    []
-    [ Header.view (Signal.forwardTo address HeaderAction) model.header
-    , bar
-    , Html.Lazy.lazy2 selectors address ( model.current, model.hoveredCategory )
-    , Html.Lazy.lazy2 projects address ( model.current, model.projects, model.hoveredProject )
-    ]
+  case model.loading of
+    [] ->
+      Html.div
+        []
+        [ Header.view (Signal.forwardTo address HeaderAction) model.header
+        , bar
+        , Html.Lazy.lazy2 selectors address ( model.current, model.hoveredCategory )
+        , Html.Lazy.lazy2 projects address ( model.current, model.projects, model.hoveredProject )
+        ]
+
+    _ ->
+      Html.text "loading..."
 
 
 bar : Html
