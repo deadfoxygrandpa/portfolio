@@ -5,19 +5,32 @@ import Html.Attributes
 import Effects
 import ColorScheme
 import Header
+import Task
+import Json.Decode
+import ImageLoad
 
 
 -- Model
 
 
 type alias Model =
-  { header : Header.Model }
+  { header : Header.Model
+  , loading : List String
+  }
 
 
-init : Model
+init : ( Model, Effects.Effects Action )
 init =
-  Model
-    (Header.init "CONTACT")
+  let
+    images =
+      [ "contact.png" ]
+
+    model =
+      { header = Header.init "CONTACT"
+      , loading = images
+      }
+  in
+    ( model, Effects.tick (always LoadImage) )
 
 
 
@@ -26,6 +39,7 @@ init =
 
 type Action
   = HeaderAction Header.Action
+  | LoadImage
 
 
 update : Action -> Model -> ( Model, Effects.Effects Action )
@@ -38,6 +52,26 @@ update action model =
       in
         ( { model | header = newHeader }, Effects.map HeaderAction fx )
 
+    LoadImage ->
+      let
+        fx =
+          List.head model.loading
+            |> Maybe.map loadImage
+            |> Maybe.withDefault Effects.none
+
+        loading =
+          List.tail model.loading |> Maybe.withDefault []
+      in
+        ( { model | loading = loading }, fx )
+
+
+loadImage : String -> Effects.Effects Action
+loadImage image =
+  ImageLoad.load ("assets/" ++ image) (Json.Decode.succeed image)
+    `Task.onError` always (Task.succeed image)
+    |> Task.map (always LoadImage)
+    |> Effects.task
+
 
 
 -- View
@@ -45,23 +79,28 @@ update action model =
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-  Html.div
-    []
-    [ Html.div
-        [ Html.Attributes.style
-            [ "position" => "fixed"
-            , "top" => "0px"
-            , "left" => "0px"
-            , "zIndex" => "-999"
-            , "width" => "100%"
-            , "height" => "100%"
-            , "backgroundColor" => "#faf5f2"
-            ]
-        ]
+  case model.loading of
+    [] ->
+      Html.div
         []
-    , Header.view (Signal.forwardTo address HeaderAction) model.header
-    , content
-    ]
+        [ Html.div
+            [ Html.Attributes.style
+                [ "position" => "fixed"
+                , "top" => "0px"
+                , "left" => "0px"
+                , "zIndex" => "-999"
+                , "width" => "100%"
+                , "height" => "100%"
+                , "backgroundColor" => "#faf5f2"
+                ]
+            ]
+            []
+        , Header.view (Signal.forwardTo address HeaderAction) model.header
+        , content
+        ]
+
+    _ ->
+      Html.text "loading..."
 
 
 content : Html.Html
