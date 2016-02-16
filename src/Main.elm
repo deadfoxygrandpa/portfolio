@@ -62,15 +62,21 @@ init =
     projectsFx' =
       Effects.map ProjectsAction projectsFx
 
+    ( about, aboutFx ) =
+      AboutPage.init
+
+    aboutFx' =
+      Effects.map AboutMeAction aboutFx
+
     model =
       { projects = projects
-      , about = AboutPage.init
+      , about = about
       , contact = ContactPage.init
       , routerPayload = router.payload
       , currentView = ""
       }
   in
-    ( model, projectsFx' )
+    ( model, Effects.batch [ projectsFx', aboutFx' ] )
 
 
 type Action
@@ -122,7 +128,7 @@ update action model =
     ContactAction action ->
       let
         ( newPage, fx ) =
-          ContactPage.update action model.about
+          ContactPage.update action model.contact
       in
         ( { model | contact = newPage }, Effects.map ContactAction fx )
 
