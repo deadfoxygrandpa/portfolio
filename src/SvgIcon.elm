@@ -1,4 +1,4 @@
-module SvgIcon (icon, icon2) where
+module SvgIcon exposing (icon, icon2)
 
 import Color exposing (Color)
 import Svg exposing (Svg)
@@ -11,11 +11,14 @@ import Svg.Attributes
 icon : String -> Color -> Int -> Int -> Svg
 icon path color w h =
     let
-        stringWidth = toString w
+        stringWidth =
+            toString w
 
-        stringHeight = toString h
+        stringHeight =
+            toString h
 
-        stringColor = toRgbaString color
+        stringColor =
+            toRgbaString color
     in
         Svg.svg
             [ Svg.Attributes.width stringWidth
@@ -33,13 +36,17 @@ icon path color w h =
 icon2 : String -> String -> Color -> Color -> Int -> Int -> Svg
 icon2 path1 path2 color1 color2 w h =
     let
-        stringWidth = toString w
+        stringWidth =
+            toString w
 
-        stringHeight = toString h
+        stringHeight =
+            toString h
 
-        stringColor1 = toRgbaString color1
+        stringColor1 =
+            toRgbaString color1
 
-        stringColor2 = toRgbaString color2
+        stringColor2 =
+            toRgbaString color2
     in
         Svg.svg
             [ Svg.Attributes.width stringWidth
@@ -62,7 +69,8 @@ icon2 path1 path2 color1 color2 w h =
 toRgbaString : Color -> String
 toRgbaString color =
     let
-        { red, green, blue, alpha } = Color.toRgb color
+        { red, green, blue, alpha } =
+            Color.toRgb color
     in
         "rgba("
             ++ toString red

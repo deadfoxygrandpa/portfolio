@@ -1,4 +1,4 @@
-module Scroll (offset, xOffset, yOffset) where
+module Scroll exposing (offset, xOffset, yOffset)
 
 {-| Scrolling support for pages that need scrollbar awareness
 
@@ -9,19 +9,22 @@ module Scroll (offset, xOffset, yOffset) where
 import Native.Scroll
 
 
-{-| Current scroll status. -}
+{-| Current scroll status.
+-}
 offset : Signal ( Int, Int )
 offset =
     Native.Scroll.offset
 
 
-{-| Current scroll status on the X axis. -}
+{-| Current scroll status on the X axis.
+-}
 xOffset : Signal Int
 xOffset =
     Signal.map fst offset
 
 
-{-| Current scroll status on the Y axis. -}
+{-| Current scroll status on the Y axis.
+-}
 yOffset : Signal Int
 yOffset =
     Signal.map snd offset
